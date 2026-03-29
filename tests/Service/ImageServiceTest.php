@@ -1,9 +1,9 @@
 <?php
 
-namespace OCA\Mattermost\Tests;
+namespace OCA\Matrix\Tests;
 
-use OCA\Mattermost\AppInfo\Application;
-use OCA\Mattermost\Service\ImageService;
+use OCA\Matrix\AppInfo\Application;
+use OCA\Matrix\Service\ImageService;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
@@ -45,7 +45,7 @@ class ImageServiceTest extends TestCase {
 	}
 
 	public function testDummy() {
-		$this->assertEquals('integration_mattermost', Application::APP_ID);
+		$this->assertEquals('integration_matrix', Application::APP_ID);
 	}
 
 	public static function previewBank(): array {

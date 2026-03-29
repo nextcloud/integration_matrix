@@ -6,7 +6,7 @@
       <directory suffix=".php">../lib</directory>
     </include>
   </coverage>
-  <testsuite name="Mattermost Integration Tests">
+  <testsuite name="Matrix Integration Tests">
     <directory suffix="Test.php">.</directory>
   </testsuite>
   <!-- filters for code coverage -->

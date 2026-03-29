@@ -1,22 +1,22 @@
 <template>
-	<div id="mattermost_prefs" class="section">
+	<div id="matrix_prefs" class="section">
 		<h2>
-			<MattermostIcon class="icon" />
-			{{ t('integration_mattermost', 'Mattermost integration') }}
+			<MatrixIcon class="icon" />
+			{{ t('integration_matrix', 'Matrix integration') }}
 		</h2>
-		<div id="mattermost-content">
+		<div id="matrix-content">
 			<NcNoteCard type="info">
-				{{ t('integration_mattermost', 'If you want to allow your Nextcloud users to use OAuth to authenticate to a Mattermost instance of your choice, create an application in your Mattermost settings and set the ID and secret here.') }}
-				{{ t('integration_mattermost', 'Make sure you set the "Redirect URI" to') }}
+				{{ t('integration_matrix', 'If you want to allow your Nextcloud users to use OAuth to authenticate to a Matrix server of your choice, create an application in your Matrix server settings and set the ID and secret here.') }}
+				{{ t('integration_matrix', 'Make sure you set the "Redirect URI" to') }}
 				<br>
 				<strong>{{ redirect_uri }}</strong>
 				<br>
-				{{ t('integration_mattermost', 'Put the "Application ID" and "Application secret" below. Your Nextcloud users will then see a "Connect to Mattermost" button in their personal settings if they select the Mattermost instance defined here.') }}
+				{{ t('integration_matrix', 'Put the "Application ID" and "Application secret" below. Your Nextcloud users will then see a "Connect to Matrix" button in their personal settings if they select the Matrix server defined here.') }}
 			</NcNoteCard>
 			<NcTextField
 				v-model="state.oauth_instance_url"
-				:label="t('integration_mattermost', 'OAuth app instance address')"
-				:placeholder="t('integration_mattermost', 'Instance address')"
+				:label="t('integration_matrix', 'Matrix server address')"
+				:placeholder="t('integration_matrix', 'Matrix server address')"
 				:show-trailing-button="!!state.oauth_instance_url"
 				@trailing-button-click="state.oauth_instance_url = ''; onInput()"
 				@update:model-value="onInput">
@@ -27,8 +27,8 @@
 			<NcTextField
 				v-model="state.client_id"
 				type="password"
-				:label="t('integration_mattermost', 'Application ID')"
-				:placeholder="t('integration_mattermost', 'ID of your Mattermost application')"
+				:label="t('integration_matrix', 'Application ID')"
+				:placeholder="t('integration_matrix', 'ID of your Matrix application')"
 				:readonly="readonly"
 				:show-trailing-button="!!state.client_id"
 				@trailing-button-click="state.client_id = ''; onInput()"
@@ -41,8 +41,8 @@
 			<NcTextField
 				v-model="state.client_secret"
 				type="password"
-				:label="t('integration_mattermost', 'Application secret')"
-				:placeholder="t('integration_mattermost', 'Application secret of your Mattermost application')"
+				:label="t('integration_matrix', 'Application secret')"
+				:placeholder="t('integration_matrix', 'Application secret of your Matrix application')"
 				:readonly="readonly"
 				:show-trailing-button="!!state.client_secret"
 				@trailing-button-click="state.client_secret = ''; onInput()"
@@ -56,12 +56,12 @@
 				<NcFormBoxSwitch
 					v-model="state.use_popup"
 					@update:model-value="onUsePopupChanged">
-					{{ t('integration_mattermost', 'Use a popup to authenticate') }}
+					{{ t('integration_matrix', 'Use a popup to authenticate') }}
 				</NcFormBoxSwitch>
 				<NcFormBoxSwitch
 					v-model="state.navlink_default"
 					@update:model-value="onNavlinkDefaultChanged">
-					{{ t('integration_mattermost', 'Enable navigation link as default for all users') }}
+					{{ t('integration_matrix', 'Enable navigation link as default for all users') }}
 				</NcFormBoxSwitch>
 			</NcFormBox>
 		</div>
@@ -72,7 +72,7 @@
 import EarthIcon from 'vue-material-design-icons/Earth.vue'
 import KeyOutlineIcon from 'vue-material-design-icons/KeyOutline.vue'
 
-import MattermostIcon from './icons/MattermostIcon.vue'
+import MatrixIcon from './icons/MatrixIcon.vue'
 
 import NcFormBox from '@nextcloud/vue/components/NcFormBox'
 import NcFormBoxSwitch from '@nextcloud/vue/components/NcFormBoxSwitch'
@@ -91,7 +91,7 @@ export default {
 	name: 'AdminSettings',
 
 	components: {
-		MattermostIcon,
+		MatrixIcon,
 		NcNoteCard,
 		NcTextField,
 		NcFormBox,
@@ -104,10 +104,9 @@ export default {
 
 	data() {
 		return {
-			state: loadState('integration_mattermost', 'admin-config'),
-			// to prevent some browsers to fill fields with remembered passwords
+			state: loadState('integration_matrix', 'admin-config'),
 			readonly: true,
-			redirect_uri: window.location.protocol + '//' + window.location.host + generateUrl('/apps/integration_mattermost/oauth-redirect'),
+			redirect_uri: window.location.protocol + '//' + window.location.host + generateUrl('/apps/integration_matrix/oauth-redirect'),
 		}
 	},
 
@@ -144,12 +143,12 @@ export default {
 				values,
 			}
 			const url = sensitive
-				? generateUrl('/apps/integration_mattermost/sensitive-admin-config')
-				: generateUrl('/apps/integration_mattermost/admin-config')
+				? generateUrl('/apps/integration_matrix/sensitive-admin-config')
+				: generateUrl('/apps/integration_matrix/admin-config')
 			axios.put(url, req).then((response) => {
-				showSuccess(t('integration_mattermost', 'Mattermost admin options saved'))
+				showSuccess(t('integration_matrix', 'Matrix admin options saved'))
 			}).catch((error) => {
-				showError(t('integration_mattermost', 'Failed to save Mattermost admin options'))
+				showError(t('integration_matrix', 'Failed to save Matrix admin options'))
 				console.error(error)
 			})
 		},
@@ -158,8 +157,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
-#mattermost_prefs {
-	#mattermost-content {
+#matrix_prefs {
+	#matrix-content {
 		margin-left: 40px;
 		display: flex;
 		flex-direction: column;

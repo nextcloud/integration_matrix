@@ -1,6 +1,6 @@
 import { loadState } from '@nextcloud/initial-state'
 
-const state = loadState('integration_mattermost', 'popup-data')
+const state = loadState('integration_matrix', 'popup-data')
 const userName = state.user_name
 const userDisplayName = state.user_displayname
 

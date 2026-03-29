@@ -1,6 +1,6 @@
 {
-	"name": "nextcloud/integration_mattermost",
-	"description": "Integration of Mattermost",
+	"name": "nextcloud/integration_matrix",
+	"description": "Integration of Matrix",
 	"type": "project",
 	"license": "AGPL-3.0-or-later",
 	"authors": [
@@ -46,12 +46,12 @@
 			"bamarni/composer-bin-plugin": true,
 			"composer/package-versions-deprecated": true
 		},
-		"autoloader-suffix": "Mattermost",
+		"autoloader-suffix": "Matrix",
 		"sort-packages": true
 	},
 	"autoload": {
 		"psr-4": {
-			"OCA\\Mattermost\\": "lib/"
+			"OCA\\Matrix\\": "lib/"
 		}
 	},
 	"autoload-dev": {

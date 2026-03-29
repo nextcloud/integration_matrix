@@ -1,5 +1,5 @@
 /**
- * Nextcloud - mattermost
+ * Nextcloud - Matrix
  *
  *
  * This file is licensed under the Affero General Public License version 3 or
@@ -14,4 +14,4 @@ import PersonalSettings from './components/PersonalSettings.vue'
 
 const app = createApp(PersonalSettings)
 app.mixin({ methods: { t, n } })
-app.mount('#mattermost_prefs')
+app.mount('#matrix_prefs')

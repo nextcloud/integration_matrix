@@ -1,5 +1,5 @@
 /**
- * Nextcloud - Mattermost
+ * Nextcloud - Matrix
  *
  *
  * This file is licensed under the Affero General Public License version 3 or
@@ -14,4 +14,4 @@ import AdminSettings from './components/AdminSettings.vue'
 
 const app = createApp(AdminSettings)
 app.mixin({ methods: { t, n } })
-app.mount('#mattermost_prefs')
+app.mount('#matrix_prefs')

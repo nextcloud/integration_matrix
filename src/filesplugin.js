@@ -23,14 +23,14 @@ import {
 	defaultRootPath,
 } from '@nextcloud/files/dav'
 import { subscribe } from '@nextcloud/event-bus'
-import MattermostIcon from '../img/app-dark.svg'
+import MatrixIcon from '../img/app.svg'
 
 import { createApp } from 'vue'
 
 const DEBUG = false
 
-if (!OCA.Mattermost) {
-	OCA.Mattermost = {
+if (!OCA.Matrix) {
+	OCA.Matrix = {
 		actionIgnoreLists: [
 			'trashbin',
 			'files.public',
@@ -42,32 +42,30 @@ if (!OCA.Mattermost) {
 
 subscribe('files:list:updated', onFilesListUpdated)
 function onFilesListUpdated({ view, folder, contents }) {
-	OCA.Mattermost.currentFileList = { view, folder, contents }
+	OCA.Matrix.currentFileList = { view, folder, contents }
 }
 
-function openChannelSelector(files) {
-	OCA.Mattermost.filesToSend = files
-	const modalVue = OCA.Mattermost.MattermostSendModalVue
-	modalVue.updateChannels()
+function openRoomSelector(files) {
+	OCA.Matrix.filesToSend = files
+	const modalVue = OCA.Matrix.MatrixSendModalVue
+	modalVue.updateRooms()
 	modalVue.setFiles([...files])
 	modalVue.showModal()
 }
 
 const sendAction = {
-	id: 'mattermostSend',
+	id: 'matrixSend',
 	displayName: ({ nodes }) => {
 		return nodes.length > 1
-			? t('integration_mattermost', 'Send files to Mattermost')
-			: t('integration_mattermost', 'Send file to Mattermost')
+			? t('integration_matrix', 'Send files to Matrix')
+			: t('integration_matrix', 'Send file to Matrix')
 	},
 	enabled({ nodes, view }) {
-		return !OCA.Mattermost.actionIgnoreLists.includes(view.id)
+		return !OCA.Matrix.actionIgnoreLists.includes(view.id)
 			&& nodes.length > 0
 			&& !nodes.some(({ permissions }) => (permissions & Permission.READ) === 0)
-			// && nodes.every(({ type }) => type === FileType.File)
-			// && nodes.every(({ mime }) => mime === 'application/some+type')
 	},
-	iconSvgInline: () => MattermostIcon,
+	iconSvgInline: () => MatrixIcon,
 	async exec({ nodes }) {
 		sendSelectedNodes([nodes[0]])
 		return null
@@ -88,17 +86,17 @@ function sendSelectedNodes(nodes) {
 			size: node.size,
 		}
 	})
-	if (OCA.Mattermost.mattermostConnected) {
-		openChannelSelector(formattedNodes)
-	} else if (OCA.Mattermost.oauthPossible) {
-		connectToMattermost(formattedNodes)
+	if (OCA.Matrix.matrixConnected) {
+		openRoomSelector(formattedNodes)
+	} else if (OCA.Matrix.oauthPossible) {
+		connectToMatrix(formattedNodes)
 	} else {
 		gotoSettingsConfirmDialog()
 	}
 }
 
 function checkIfFilesToSend() {
-	const urlCheckConnection = generateUrl('/apps/integration_mattermost/files-to-send')
+	const urlCheckConnection = generateUrl('/apps/integration_matrix/files-to-send')
 	axios.get(urlCheckConnection)
 		.then((response) => {
 			const fileIdsStr = response?.data?.file_ids_to_send_after_oauth
@@ -106,7 +104,7 @@ function checkIfFilesToSend() {
 			if (fileIdsStr && currentDir) {
 				sendFileIdsAfterOAuth(fileIdsStr, currentDir)
 			} else {
-				if (DEBUG) console.debug('[Mattermost] nothing to send')
+				if (DEBUG) console.debug('[Matrix] nothing to send')
 			}
 		})
 		.catch((error) => {
@@ -122,14 +120,11 @@ function checkIfFilesToSend() {
  * @param {string} currentDir path to the current dir
  */
 async function sendFileIdsAfterOAuth(fileIdsStr, currentDir) {
-	if (DEBUG) console.debug('[Mattermost] in sendFileIdsAfterOAuth, fileIdsStr, currentDir', fileIdsStr, currentDir)
-	// this is only true after an OAuth connection initated from a file action
+	if (DEBUG) console.debug('[Matrix] in sendFileIdsAfterOAuth, fileIdsStr, currentDir', fileIdsStr, currentDir)
 	if (fileIdsStr) {
-		// get files info
 		const client = getClient()
 		const results = await client.getDirectoryContents(`${defaultRootPath}${currentDir}`, {
 			details: true,
-			// Query all required properties for a Node
 			data: getDefaultPropfind(),
 		})
 		const nodes = results.data.map((r) => resultToNode(r))
@@ -147,28 +142,28 @@ async function sendFileIdsAfterOAuth(fileIdsStr, currentDir) {
 			}
 			return null
 		}).filter((e) => e !== null)
-		if (DEBUG) console.debug('[Mattermost] in sendFileIdsAfterOAuth, after changeDirectory, files:', files)
+		if (DEBUG) console.debug('[Matrix] in sendFileIdsAfterOAuth, after changeDirectory, files:', files)
 		if (files.length) {
-			if (DEBUG) console.debug('[Mattermost] in sendFileIdsAfterOAuth, after changeDirectory, call openChannelSelector')
-			openChannelSelector(files)
+			if (DEBUG) console.debug('[Matrix] in sendFileIdsAfterOAuth, after changeDirectory, call openRoomSelector')
+			openRoomSelector(files)
 		}
 	}
 }
 
-function connectToMattermost(selectedFiles = []) {
-	oauthConnectConfirmDialog(OCA.Mattermost.mattermostUrl).then(() => {
-		if (OCA.Mattermost.usePopup) {
-			oauthConnect(OCA.Mattermost.mattermostUrl, OCA.Mattermost.clientId, null, true)
+function connectToMatrix(selectedFiles = []) {
+	oauthConnectConfirmDialog(OCA.Matrix.matrixUrl).then(() => {
+		if (OCA.Matrix.usePopup) {
+			oauthConnect(OCA.Matrix.matrixUrl, OCA.Matrix.clientId, null, true)
 				.then((data) => {
-					OCA.Mattermost.mattermostConnected = true
-					openChannelSelector(selectedFiles)
+					OCA.Matrix.matrixConnected = true
+					openRoomSelector(selectedFiles)
 				})
 		} else {
 			const selectedFilesIds = selectedFiles.map(f => f.id)
-			const currentDirectory = OCA.Mattermost.currentFileList?.folder?.attributes?.filename
+			const currentDirectory = OCA.Matrix.currentFileList?.folder?.attributes?.filename
 			oauthConnect(
-				OCA.Mattermost.mattermostUrl,
-				OCA.Mattermost.clientId,
+				OCA.Matrix.matrixUrl,
+				OCA.Matrix.clientId,
 				'files--' + currentDirectory + '--' + selectedFilesIds.join(','),
 			)
 		}
@@ -179,206 +174,200 @@ function connectToMattermost(selectedFiles = []) {
 
 // ///////////////// Network
 
-function sendPublicLinks(channelId, channelName, comment, permission, expirationDate, password) {
+function sendPublicLinks(roomId, roomName, comment, permission, expirationDate, password) {
 	const req = {
-		fileIds: OCA.Mattermost.filesToSend.map((f) => f.id),
-		channelId,
-		channelName,
+		fileIds: OCA.Matrix.filesToSend.map((f) => f.id),
+		roomId,
+		roomName,
 		comment,
 		permission,
 		expirationDate: expirationDate ? moment(expirationDate).format('YYYY-MM-DD') : undefined,
 		password,
 	}
-	const url = generateUrl('apps/integration_mattermost/sendPublicLinks')
+	const url = generateUrl('apps/integration_matrix/sendPublicLinks')
 	axios.post(url, req).then((response) => {
-		const number = OCA.Mattermost.filesToSend.length
+		const number = OCA.Matrix.filesToSend.length
 		showSuccess(
 			n(
-				'integration_mattermost',
-				'A link to {fileName} was sent to {channelName}',
-				'{number} links were sent to {channelName}',
+				'integration_matrix',
+				'A link to {fileName} was sent to {roomName}',
+				'{number} links were sent to {roomName}',
 				number,
 				{
-					fileName: OCA.Mattermost.filesToSend[0].name,
-					channelName,
+					fileName: OCA.Matrix.filesToSend[0].name,
+					roomName,
 					number,
 				},
 			),
 		)
-		OCA.Mattermost.MattermostSendModalVue.success()
+		OCA.Matrix.MatrixSendModalVue.success()
 	}).catch((error) => {
 		console.error(error)
-		OCA.Mattermost.MattermostSendModalVue.failure()
-		OCA.Mattermost.filesToSend = []
+		OCA.Matrix.MatrixSendModalVue.failure()
+		OCA.Matrix.filesToSend = []
 		showError(
-			t('integration_mattermost', 'Failed to send links to Mattermost')
+			t('integration_matrix', 'Failed to send links to Matrix')
 			+ ' ' + error.response?.request?.responseText,
 		)
 	})
 }
 
-function sendInternalLinks(channelId, channelName, comment) {
-	sendMessage(channelId, comment).then((response) => {
-		OCA.Mattermost.filesToSend.forEach(f => {
+function sendInternalLinks(roomId, roomName, comment) {
+	sendMessage(roomId, comment).then((response) => {
+		OCA.Matrix.filesToSend.forEach(f => {
 			const link = window.location.protocol + '//' + window.location.host + generateUrl('/f/' + f.id)
 			const message = f.name + ': ' + link
-			sendMessage(channelId, message)
+			sendMessage(roomId, message)
 		})
-		const number = OCA.Mattermost.filesToSend.length
+		const number = OCA.Matrix.filesToSend.length
 		showSuccess(
 			n(
-				'integration_mattermost',
-				'A link to {fileName} was sent to {channelName}',
-				'{number} links were sent to {channelName}',
+				'integration_matrix',
+				'A link to {fileName} was sent to {roomName}',
+				'{number} links were sent to {roomName}',
 				number,
 				{
-					fileName: OCA.Mattermost.filesToSend[0].name,
-					channelName,
+					fileName: OCA.Matrix.filesToSend[0].name,
+					roomName,
 					number,
 				},
 			),
 		)
-		OCA.Mattermost.MattermostSendModalVue.success()
+		OCA.Matrix.MatrixSendModalVue.success()
 	}).catch((error) => {
 		console.error(error)
-		OCA.Mattermost.MattermostSendModalVue.failure()
-		OCA.Mattermost.filesToSend = []
+		OCA.Matrix.MatrixSendModalVue.failure()
+		OCA.Matrix.filesToSend = []
 		showError(
-			t('integration_mattermost', 'Failed to send internal links to Mattermost')
+			t('integration_matrix', 'Failed to send internal links to Matrix')
 			+ ': ' + error.response?.request?.responseText,
 		)
 	})
 }
 
-function sendFileLoop(channelId, channelName, comment) {
-	const file = OCA.Mattermost.filesToSend.shift()
-	// skip directories
+function sendFileLoop(roomId, roomName, comment) {
+	const file = OCA.Matrix.filesToSend.shift()
 	if (file.type === 'dir') {
-		if (OCA.Mattermost.filesToSend.length === 0) {
-			// we are done, no next file
-			sendMessageAfterFilesUpload(channelId, channelName, comment)
+		if (OCA.Matrix.filesToSend.length === 0) {
+			sendMessageAfterFilesUpload(roomId, roomName, comment)
 		} else {
-			// skip, go to next
-			sendFileLoop(channelId, channelName, comment)
+			sendFileLoop(roomId, roomName, comment)
 		}
 		return
 	}
-	OCA.Mattermost.MattermostSendModalVue.fileStarted(file.id)
+	OCA.Matrix.MatrixSendModalVue.fileStarted(file.id)
 	const req = {
 		fileId: file.id,
-		channelId,
+		roomId,
 	}
-	const url = generateUrl('apps/integration_mattermost/sendFile')
+	const url = generateUrl('apps/integration_matrix/sendFile')
 	axios.post(url, req).then((response) => {
-		OCA.Mattermost.remoteFileIds.push(response.data.remote_file_id)
-		OCA.Mattermost.sentFileNames.push(file.name)
-		OCA.Mattermost.MattermostSendModalVue.fileFinished(file.id)
-		if (OCA.Mattermost.filesToSend.length === 0) {
-			// finished
-			sendMessageAfterFilesUpload(channelId, channelName, comment)
+		OCA.Matrix.remoteFileIds.push(response.data.remote_file_id)
+		OCA.Matrix.sentFileNames.push(file.name)
+		OCA.Matrix.MatrixSendModalVue.fileFinished(file.id)
+		if (OCA.Matrix.filesToSend.length === 0) {
+			sendMessageAfterFilesUpload(roomId, roomName, comment)
 		} else {
-			// not finished
-			sendFileLoop(channelId, channelName, comment)
+			sendFileLoop(roomId, roomName, comment)
 		}
 	}).catch((error) => {
 		console.error(error)
-		OCA.Mattermost.MattermostSendModalVue.failure()
-		OCA.Mattermost.filesToSend = []
-		OCA.Mattermost.sentFileNames = []
+		OCA.Matrix.MatrixSendModalVue.failure()
+		OCA.Matrix.filesToSend = []
+		OCA.Matrix.sentFileNames = []
 		showError(
-			t('integration_mattermost', 'Failed to send {name} to Mattermost', { name: file.name })
+			t('integration_matrix', 'Failed to send {name} to Matrix', { name: file.name })
 			+ ' ' + error.response?.request?.responseText,
 		)
 	})
 }
 
-function sendMessageAfterFilesUpload(channelId, channelName, comment) {
-	const count = OCA.Mattermost.sentFileNames.length
-	const lastFileName = count === 0 ? t('integration_mattermost', 'Nothing') : OCA.Mattermost.sentFileNames[count - 1]
-	sendMessage(channelId, comment, OCA.Mattermost.remoteFileIds).then((response) => {
+function sendMessageAfterFilesUpload(roomId, roomName, comment) {
+	const count = OCA.Matrix.sentFileNames.length
+	const lastFileName = count === 0 ? t('integration_matrix', 'Nothing') : OCA.Matrix.sentFileNames[count - 1]
+	sendMessage(roomId, comment, OCA.Matrix.remoteFileIds).then((response) => {
 		showSuccess(
 			n(
-				'integration_mattermost',
-				'{fileName} was sent to {channelName}',
-				'{count} files were sent to {channelName}',
+				'integration_matrix',
+				'{fileName} was sent to {roomName}',
+				'{count} files were sent to {roomName}',
 				count,
 				{
 					fileName: lastFileName,
-					channelName,
+					roomName,
 					count,
 				},
 			),
 		)
-		OCA.Mattermost.MattermostSendModalVue.success()
+		OCA.Matrix.MatrixSendModalVue.success()
 	}).catch((error) => {
 		console.error(error)
-		OCA.Mattermost.MattermostSendModalVue.failure()
+		OCA.Matrix.MatrixSendModalVue.failure()
 		showError(
-			t('integration_mattermost', 'Failed to send files to Mattermost')
+			t('integration_matrix', 'Failed to send files to Matrix')
 			+ ': ' + error.response?.request?.responseText,
 		)
 	}).then(() => {
-		OCA.Mattermost.filesToSend = []
-		OCA.Mattermost.remoteFileIds = []
-		OCA.Mattermost.sentFileNames = []
+		OCA.Matrix.filesToSend = []
+		OCA.Matrix.remoteFileIds = []
+		OCA.Matrix.sentFileNames = []
 	})
 }
 
-function sendMessage(channelId, message, remoteFileIds = undefined) {
+function sendMessage(roomId, message, remoteFileIds = undefined) {
 	const req = {
 		message,
-		channelId,
+		roomId,
 		remoteFileIds,
 	}
-	const url = generateUrl('apps/integration_mattermost/sendMessage')
+	const url = generateUrl('apps/integration_matrix/sendMessage')
 	return axios.post(url, req)
 }
 
 // ////////////// Main
 
-// send file modal
-const modalId = 'mattermostSendModal'
+const modalId = 'matrixSendModal'
 const modalElement = document.createElement('div')
 modalElement.id = modalId
 document.body.append(modalElement)
 
 const app = createApp(SendFilesModal)
 app.mixin({ methods: { t, n } })
-OCA.Mattermost.MattermostSendModalVue = app.mount(modalElement)
+OCA.Matrix.MatrixSendModalVue = app.mount(modalElement)
 
 modalElement.addEventListener('closed', () => {
-	if (DEBUG) console.debug('[Mattermost] modal closed')
+	if (DEBUG) console.debug('[Matrix] modal closed')
 })
 
 modalElement.addEventListener('validate', (data) => {
-	const { filesToSend, channelId, channelName, type, comment, permission, expirationDate, password } = data.detail
+	const { filesToSend, roomId, roomName, type, comment, permission, expirationDate, password } = data.detail
 
-	OCA.Mattermost.filesToSend = filesToSend
+	OCA.Matrix.filesToSend = filesToSend
 	if (type === SEND_TYPE.public_link.id) {
-		sendPublicLinks(channelId, channelName, comment, permission, expirationDate, password)
+		sendPublicLinks(roomId, roomName, comment, permission, expirationDate, password)
 	} else if (type === SEND_TYPE.internal_link.id) {
-		sendInternalLinks(channelId, channelName, comment)
+		sendInternalLinks(roomId, roomName, comment)
 	} else {
-		OCA.Mattermost.remoteFileIds = []
-		OCA.Mattermost.sentFileNames = []
-		sendFileLoop(channelId, channelName, comment)
+		OCA.Matrix.remoteFileIds = []
+		OCA.Matrix.sentFileNames = []
+		sendFileLoop(roomId, roomName, comment)
 	}
 })
 
-// get Mattermost state
-const urlCheckConnection = generateUrl('/apps/integration_mattermost/is-connected')
+// get Matrix state
+const urlCheckConnection = generateUrl('/apps/integration_matrix/is-connected')
 axios.get(urlCheckConnection).then((response) => {
-	OCA.Mattermost.mattermostConnected = response.data.connected
-	OCA.Mattermost.oauthPossible = response.data.oauth_possible
-	OCA.Mattermost.usePopup = response.data.use_popup
-	OCA.Mattermost.clientId = response.data.client_id
-	OCA.Mattermost.mattermostUrl = response.data.url
-	if (DEBUG) console.debug('[Mattermost] OCA.Mattermost', OCA.Mattermost)
+	OCA.Matrix.matrixConnected = response.data.connected
+	OCA.Matrix.oauthPossible = response.data.oauth_possible
+	OCA.Matrix.usePopup = response.data.use_popup
+	OCA.Matrix.clientId = response.data.client_id
+	OCA.Matrix.matrixUrl = response.data.url
+	if (DEBUG) console.debug('[Matrix] OCA.Matrix', OCA.Matrix)
 }).catch((error) => {
 	console.error(error)
 })
 
 document.addEventListener('DOMContentLoaded', () => {
-	if (DEBUG) console.debug('[Mattermost] before checkIfFilesToSend')
+	if (DEBUG) console.debug('[Matrix] before checkIfFilesToSend')
 	checkIfFilesToSend()
 })

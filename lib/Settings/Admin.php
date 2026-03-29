@@ -1,8 +1,8 @@
 <?php
 
-namespace OCA\Mattermost\Settings;
+namespace OCA\Matrix\Settings;
 
-use OCA\Mattermost\AppInfo\Application;
+use OCA\Matrix\AppInfo\Application;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
@@ -29,7 +29,6 @@ class Admin implements ISettings {
 
 		$adminConfig = [
 			'client_id' => $clientID,
-			// Do not expose the saved client secret to the user
 			'client_secret' => $clientSecret !== '' ? 'dummySecret' : '',
 			'oauth_instance_url' => $oauthUrl,
 			'use_popup' => ($usePopup === '1'),

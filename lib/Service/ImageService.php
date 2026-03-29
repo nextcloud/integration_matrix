@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Nextcloud - Mattermost
+ * Nextcloud - Matrix
  *
  * This file is licensed under the Affero General Public License version 3 or
  * later. See the COPYING file.
@@ -10,7 +10,7 @@
  * @copyright Julien Veyssier 2022
  */
 
-namespace OCA\Mattermost\Service;
+namespace OCA\Matrix\Service;
 
 use OCP\Files\File;
 use OCP\Files\IMimeTypeDetector;
@@ -53,7 +53,6 @@ class ImageService {
 					$this->logger->error('Mimetype is supported but no preview available', ['exception' => $e]);
 				}
 			}
-			// fallback: mimetype icon
 			return [
 				'type' => 'icon',
 				'icon' => $this->mimeTypeDetector->mimeTypeIcon($file->getMimeType()),

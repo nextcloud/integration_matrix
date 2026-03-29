@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Nextcloud - Mattermost
+ * Nextcloud - Matrix
  *
  * This file is licensed under the Affero General Public License version 3 or
  * later. See the COPYING file.
@@ -10,10 +10,10 @@
  * @copyright Julien Veyssier 2022
  */
 
-namespace OCA\Mattermost\Controller;
+namespace OCA\Matrix\Controller;
 
 use Exception;
-use OCA\Mattermost\Service\ImageService;
+use OCA\Matrix\Service\ImageService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;

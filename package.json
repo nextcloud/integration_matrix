@@ -1,7 +1,7 @@
 {
-	"name": "integration_mattermost",
+	"name": "integration_matrix",
 	"version": "3.0.0",
-	"description": "Mattermost integration",
+	"description": "Matrix integration",
 	"main": "index.js",
 	"directories": {
 		"test": "tests"
@@ -17,17 +17,17 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/julien-nc/integration_mattermost"
+		"url": "https://github.com/julien-nc/integration_matrix"
 	},
 	"keywords": [
-		"mattermost"
+		"matrix"
 	],
 	"author": "Julien Veyssier",
 	"license": "AGPL-3.0",
 	"bugs": {
-		"url": "https://github.com/julien-nc/integration_mattermost/issues"
+		"url": "https://github.com/julien-nc/integration_matrix/issues"
 	},
-	"homepage": "https://github.com/julien-nc/integration_mattermost",
+	"homepage": "https://github.com/julien-nc/integration_matrix",
 	"browserslist": [
 		"extends @nextcloud/browserslist-config"
 	],

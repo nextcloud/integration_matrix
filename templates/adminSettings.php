@@ -1,6 +1,6 @@
 <?php
-$appId = OCA\Mattermost\AppInfo\Application::APP_ID;
+$appId = OCA\Matrix\AppInfo\Application::APP_ID;
 \OCP\Util::addScript($appId, $appId . '-adminSettings');
 ?>
 
-<div id="mattermost_prefs"></div>
+<div id="matrix_prefs"></div>

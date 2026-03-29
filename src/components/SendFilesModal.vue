@@ -1,16 +1,16 @@
 <template>
-	<div class="mattermost-modal-container">
+	<div class="matrix-modal-container">
 		<NcModal v-if="show"
 			size="normal"
-			:name="t('integration_mattermost', 'Send files or links to Mattermost')"
+			:name="t('integration_matrix', 'Send files or links to Matrix')"
 			@close="closeModal">
-			<div class="mattermost-modal-content">
+			<div class="matrix-modal-content">
 				<h2 class="modal-title">
-					<MattermostIcon />
+					<MatrixIcon />
 					<span>
 						{{ sendType === SEND_TYPE.file.id
-							? n('integration_mattermost', 'Send file to Mattermost', 'Send files to Mattermost', files.length)
-							: n('integration_mattermost', 'Send link to Mattermost', 'Send links to Mattermost', files.length)
+							? n('integration_matrix', 'Send file to Matrix room', 'Send files to Matrix room', files.length)
+							: n('integration_matrix', 'Send link to Matrix room', 'Send links to Matrix room', files.length)
 						}}
 					</span>
 				</h2>
@@ -18,7 +18,7 @@
 					<FileOutlineIcon />
 					<span>
 						<strong>
-							{{ t('integration_mattermost', 'Files') }}
+							{{ t('integration_matrix', 'Files') }}
 						</strong>
 					</span>
 				</span>
@@ -50,59 +50,46 @@
 					</div>
 				</div>
 				<span class="field-label">
-					<PoundIcon />
+					<MatrixIcon :size="20" />
 					<span>
 						<strong>
-							{{ t('integration_mattermost', 'Channel') }}
+							{{ t('integration_matrix', 'Room') }}
 						</strong>
 					</span>
 				</span>
 				<NcSelect
-					v-model="selectedChannel"
-					class="channel-select"
-					:options="sortedChannels"
-					label="display_name"
+					v-model="selectedRoom"
+					class="room-select"
+					:options="sortedRooms"
+					label="name"
 					:append-to-body="false"
-					:placeholder="t('integration_mattermost', 'Choose a channel')"
-					input-id="mattermost-channel-select"
-					:aria-label-combobox="t('integration_mattermost', 'Channel')"
+					:placeholder="t('integration_matrix', 'Choose a room')"
+					input-id="matrix-room-select"
+					:aria-label-combobox="t('integration_matrix', 'Room')"
 					@search="query = $event">
 					<template #option="option">
 						<div class="select-option">
-							<NcAvatar v-if="option.team_display_name"
+							<NcAvatar v-if="option.avatar_url"
 								:size="34"
-								:url="getTeamIconUrl(option.team_id)"
+								:url="option.avatar_url"
 								display-name="#" />
-							<NcAvatar v-else-if="option.direct_message_display_name"
+							<NcAvatar v-else
 								:size="34"
-								:url="getUserIconUrl(option.direct_message_user_id)"
-								display-name="U" />
-							<NcHighlight v-if="option.team_display_name"
-								:text="'[' + option.team_display_name + '] ' + option.display_name"
-								:search="query"
-								class="multiselect-name" />
-							<NcHighlight v-else-if="option.direct_message_display_name"
-								:text="option.direct_message_display_name"
+								display-name="#" />
+							<NcHighlight
+								:text="option.name"
 								:search="query"
 								class="multiselect-name" />
 						</div>
 					</template>
 					<template #selected-option="option">
-						<NcAvatar v-if="option.team_display_name"
+						<NcAvatar v-if="option.avatar_url"
 							:size="24"
-							:url="getTeamIconUrl(option.team_id)"
+							:url="option.avatar_url"
 							display-name="#" />
-						<NcAvatar v-else-if="option.direct_message_display_name"
-							:size="24"
-							:url="getUserIconUrl(option.direct_message_user_id)"
-							display-name="U" />
-						<span v-if="option.team_display_name"
+						<span v-else
 							class="multiselect-name">
-							{{ '[' + option.team_display_name + '] ' + option.display_name }}
-						</span>
-						<span v-else-if="option.direct_message_display_name"
-							class="multiselect-name">
-							{{ option.direct_message_display_name }}
+							{{ option.name }}
 						</span>
 					</template>
 				</NcSelect>
@@ -111,7 +98,7 @@
 						<UploadBoxOutlineIcon />
 						<span>
 							<strong>
-								{{ t('integration_mattermost', 'Type') }}
+								{{ t('integration_matrix', 'Type') }}
 							</strong>
 						</span>
 					</span>
@@ -139,29 +126,26 @@
 						<template #icon="{option}">
 							{{ option.label }}
 						</template>
-						<!--template-- #label="{option}">
-							{{ option.label + 'lala' }}
-						</template-->
 					</RadioElementSet>
 					<div v-show="sendType === SEND_TYPE.public_link.id"
 						class="expiration-field">
 						<NcCheckboxRadioSwitch
 							v-model="expirationEnabled">
-							{{ t('integration_mattermost', 'Set expiration date') }}
+							{{ t('integration_matrix', 'Set expiration date') }}
 						</NcCheckboxRadioSwitch>
 						<div class="spacer" />
 						<NcDateTimePicker v-show="expirationEnabled"
 							id="expiration-datepicker"
 							v-model="expirationDate"
 							:disabled-date="isDateDisabled"
-							:placeholder="t('integration_mattermost', 'Expires on')"
+							:placeholder="t('integration_matrix', 'Expires on')"
 							:clearable="true" />
 					</div>
 					<div v-show="sendType === SEND_TYPE.public_link.id"
 						class="password-field">
 						<NcCheckboxRadioSwitch
 							v-model="passwordEnabled">
-							{{ t('integration_mattermost', 'Set link password') }}
+							{{ t('integration_matrix', 'Set link password') }}
 						</NcCheckboxRadioSwitch>
 						<div class="spacer" />
 						<input v-show="passwordEnabled"
@@ -174,7 +158,7 @@
 						<CommentOutlineIcon />
 						<span>
 							<strong>
-								{{ t('integration_mattermost', 'Comment') }}
+								{{ t('integration_matrix', 'Comment') }}
 							</strong>
 						</span>
 					</span>
@@ -188,14 +172,14 @@
 					class="warning-container">
 					<AlertBoxOutlineIcon class="warning-icon" />
 					<label>
-						{{ t('integration_mattermost', 'Directories will be skipped, they can only be sent as links.') }}
+						{{ t('integration_matrix', 'Directories will be skipped, they can only be sent as links.') }}
 					</label>
 				</span>
-				<div class="mattermost-footer">
+				<div class="matrix-footer">
 					<div class="spacer" />
 					<NcButton
 						@click="closeModal">
-						{{ t('integration_mattermost', 'Cancel') }}
+						{{ t('integration_matrix', 'Cancel') }}
 					</NcButton>
 					<NcButton variant="primary"
 						:class="{ loading, okButton: true }"
@@ -205,8 +189,8 @@
 							<SendOutlineIcon />
 						</template>
 						{{ sendType === SEND_TYPE.file.id
-							? n('integration_mattermost', 'Send file', 'Send files', files.length)
-							: n('integration_mattermost', 'Send link', 'Send links', files.length)
+							? n('integration_matrix', 'Send file', 'Send files', files.length)
+							: n('integration_matrix', 'Send link', 'Send links', files.length)
 						}}
 					</NcButton>
 				</div>
@@ -233,7 +217,6 @@ import EyeOutlineIcon from 'vue-material-design-icons/EyeOutline.vue'
 import FileOutlineIcon from 'vue-material-design-icons/FileOutline.vue'
 import UploadBoxOutlineIcon from 'vue-material-design-icons/UploadBoxOutline.vue'
 import PencilOutlineIcon from 'vue-material-design-icons/PencilOutline.vue'
-import PoundIcon from 'vue-material-design-icons/Pound.vue'
 import SendOutlineIcon from 'vue-material-design-icons/SendOutline.vue'
 
 import axios from '@nextcloud/axios'
@@ -241,7 +224,7 @@ import { showError } from '@nextcloud/dialogs'
 import { FileType } from '@nextcloud/files'
 import { generateUrl } from '@nextcloud/router'
 import { humanFileSize, SEND_TYPE } from '../utils.js'
-import MattermostIcon from './icons/MattermostIcon.vue'
+import MatrixIcon from './icons/MatrixIcon.vue'
 import RadioElementSet from './RadioElementSet.vue'
 
 const STATES = {
@@ -253,7 +236,7 @@ export default {
 	name: 'SendFilesModal',
 
 	components: {
-		MattermostIcon,
+		MatrixIcon,
 		NcSelect,
 		NcCheckboxRadioSwitch,
 		NcDateTimePicker,
@@ -264,7 +247,6 @@ export default {
 		NcButton,
 		NcAvatar,
 		SendOutlineIcon,
-		PoundIcon,
 		FileOutlineIcon,
 		UploadBoxOutlineIcon,
 		CommentOutlineIcon,
@@ -285,19 +267,19 @@ export default {
 			query: '',
 			files: [],
 			fileStates: {},
-			channels: [],
-			selectedChannel: null,
+			rooms: [],
+			selectedRoom: null,
 			selectedPermission: 'view',
 			expirationEnabled: false,
 			expirationDate: null,
 			passwordEnabled: false,
 			password: '',
-			passwordPlaceholder: t('integration_mattermost', 'password'),
+			passwordPlaceholder: t('integration_matrix', 'password'),
 			STATES,
-			commentPlaceholder: t('integration_mattermost', 'Message to send with the files'),
+			commentPlaceholder: t('integration_matrix', 'Message to send with the files'),
 			permissionOptions: {
-				view: { label: t('integration_mattermost', 'View only'), icon: EyeOutlineIcon },
-				edit: { label: t('integration_mattermost', 'Edit'), icon: PencilOutlineIcon },
+				view: { label: t('integration_matrix', 'View only'), icon: EyeOutlineIcon },
+				edit: { label: t('integration_matrix', 'Edit'), icon: PencilOutlineIcon },
 			},
 		}
 	},
@@ -310,19 +292,15 @@ export default {
 			return this.files.filter((f) => f.type !== 'dir').length === 0
 		},
 		canValidate() {
-			return this.selectedChannel !== null
+			return this.selectedRoom !== null
 				&& (this.sendType !== SEND_TYPE.file.id || !this.onlyDirectories)
 				&& this.files.length > 0
 		},
-		sortedChannels() {
-			return this.channels.slice().sort((a, b) => {
-				const lpa = a.last_post_at
-				const lpb = b.last_post_at
-				return lpa < lpb
-					? 1
-					: lpa > lpb
-						? -1
-						: 0
+		sortedRooms() {
+			return this.rooms.slice().sort((a, b) => {
+				const nameA = a.name || ''
+				const nameB = b.name || ''
+				return nameA.localeCompare(nameB)
 			})
 		},
 	},
@@ -336,10 +314,10 @@ export default {
 
 	methods: {
 		reset() {
-			this.selectedChannel = null
+			this.selectedRoom = null
 			this.files = []
 			this.fileStates = {}
-			this.channels = []
+			this.rooms = []
 			this.comment = ''
 			this.sendType = SEND_TYPE.file.id
 			this.selectedPermission = 'view'
@@ -363,8 +341,8 @@ export default {
 			this.loading = true
 			const _data = {
 				filesToSend: [...this.files],
-				channelId: this.selectedChannel.id,
-				channelName: this.selectedChannel.display_name,
+				roomId: this.selectedRoom.room_id,
+				roomName: this.selectedRoom.name,
 				type: this.sendType,
 				comment: this.comment,
 				permission: this.selectedPermission,
@@ -385,15 +363,15 @@ export default {
 		failure() {
 			this.loading = false
 		},
-		updateChannels() {
-			const url = generateUrl('apps/integration_mattermost/channels')
+		updateRooms() {
+			const url = generateUrl('apps/integration_matrix/rooms')
 			axios.get(url).then((response) => {
-				this.channels = response.data
-				if (this.sortedChannels.length > 0) {
-					this.selectedChannel = this.sortedChannels[0]
+				this.rooms = response.data
+				if (this.sortedRooms.length > 0) {
+					this.selectedRoom = this.sortedRooms[0]
 				}
 			}).catch((error) => {
-				showError(t('integration_mattermost', 'Failed to load Mattermost channels'))
+				showError(t('integration_matrix', 'Failed to load Matrix rooms'))
 				console.error(error)
 				console.error(error.response?.data?.error)
 			})
@@ -402,19 +380,13 @@ export default {
 			if (fileType === FileType.Folder) {
 				return generateUrl('/apps/theming/img/core/filetypes/folder.svg')
 			}
-			return generateUrl('/apps/integration_mattermost/preview?id={fileId}&x=100&y=100', { fileId })
+			return generateUrl('/apps/integration_matrix/preview?id={fileId}&x=100&y=100', { fileId })
 		},
 		fileStarted(id) {
 			this.$set(this.fileStates, id, STATES.IN_PROGRESS)
 		},
 		fileFinished(id) {
 			this.$set(this.fileStates, id, STATES.FINISHED)
-		},
-		getTeamIconUrl(teamId) {
-			return generateUrl('/apps/integration_mattermost/teams/{teamId}/image', { teamId })
-		},
-		getUserIconUrl(userId) {
-			return generateUrl('/apps/integration_mattermost/users/{userId}/image', { userId })
 		},
 		isDateDisabled(d) {
 			const now = new Date()
@@ -427,18 +399,12 @@ export default {
 			const index = this.files.findIndex((f) => f.id === fileId)
 			this.files.splice(index, 1)
 		},
-		onChannelSelected(selected) {
-			if (selected !== null) {
-				this.selectedChannel = selected
-			}
-		},
 	},
 }
 </script>
 
 <style scoped lang="scss">
-.mattermost-modal-content {
-	//width: 100%;
+.matrix-modal-content {
 	padding: 16px;
 	display: flex;
 	flex-direction: column;
@@ -449,7 +415,7 @@ export default {
 		align-items: center;
 	}
 
-	> *:not(.mattermost-footer) {
+	> *:not(.matrix-footer) {
 		margin-bottom: 16px;
 	}
 
@@ -462,7 +428,7 @@ export default {
 		}
 	}
 
-	> *:not(.field-label):not(.advanced-options):not(.mattermost-footer):not(.warning-container),
+	> *:not(.field-label):not(.advanced-options):not(.matrix-footer):not(.warning-container),
 	.advanced-options > *:not(.field-label) {
 		margin-left: 10px;
 	}
@@ -569,7 +535,7 @@ export default {
 	flex-grow: 1;
 }
 
-.mattermost-footer {
+.matrix-footer {
 	display: flex;
 	> * {
 		margin-left: 8px;

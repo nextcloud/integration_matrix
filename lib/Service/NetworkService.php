@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Nextcloud - Mattermost
+ * Nextcloud - Matrix
  *
  * This file is licensed under the Affero General Public License version 3 or
  * later. See the COPYING file.
@@ -10,12 +10,12 @@
  * @copyright Julien Veyssier 2022
  */
 
-namespace OCA\Mattermost\Service;
+namespace OCA\Matrix\Service;
 
 use Exception;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
-use OCA\Mattermost\AppInfo\Application;
+use OCA\Matrix\AppInfo\Application;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
@@ -26,7 +26,7 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Service to make requests to Mattermost API
+ * Service to make requests to Matrix API
  */
 class NetworkService {
 
@@ -44,7 +44,7 @@ class NetworkService {
 
 	/**
 	 * @param string $userId
-	 * @param string $mattermostUrl
+	 * @param string $matrixUrl
 	 * @param string $endPoint
 	 * @param array $params
 	 * @param string $method
@@ -54,7 +54,7 @@ class NetworkService {
 	 */
 	public function request(
 		string $userId,
-		string $mattermostUrl,
+		string $matrixUrl,
 		string $endPoint,
 		array $params = [],
 		string $method = 'GET',
@@ -63,30 +63,17 @@ class NetworkService {
 		$accessToken = $this->config->getUserValue($userId, Application::APP_ID, 'token');
 		$accessToken = $accessToken === '' ? '' : $this->crypto->decrypt($accessToken);
 		try {
-			$url = $mattermostUrl . '/api/v4/' . $endPoint;
+			$url = $matrixUrl . '/_matrix/client/v0/' . $endPoint;
 			$options = [
 				'headers' => [
 					'Authorization' => 'Bearer ' . $accessToken,
-					'Content-Type' => 'application/x-www-form-urlencoded',
 					'User-Agent' => Application::INTEGRATION_USER_AGENT,
 				],
 			];
 
 			if (count($params) > 0) {
 				if ($method === 'GET') {
-					// manage array parameters
-					$paramsContent = '';
-					foreach ($params as $key => $value) {
-						if (is_array($value)) {
-							foreach ($value as $oneArrayValue) {
-								$paramsContent .= $key . '[]=' . urlencode($oneArrayValue) . '&';
-							}
-							unset($params[$key]);
-						}
-					}
-					$paramsContent .= http_build_query($params);
-
-					$url .= '?' . $paramsContent;
+					$url .= '?' . http_build_query($params);
 				} else {
 					$options['json'] = $params;
 				}
@@ -108,19 +95,17 @@ class NetworkService {
 
 			if ($respCode >= 400) {
 				return ['error' => $this->l10n->t('Bad credentials')];
-			} else {
-				if ($jsonResponse) {
-					return json_decode($body, true);
-				} else {
-					return $body;
-				}
 			}
+			if ($jsonResponse) {
+				return json_decode($body, true);
+			}
+			return $body;
 		} catch (ServerException|ClientException $e) {
 			$body = $e->getResponse()->getBody();
-			$this->logger->error('Mattermost API error : ' . (string)$body, ['app' => Application::APP_ID]);
+			$this->logger->error('Matrix API error: ' . (string)$body, ['app' => Application::APP_ID]);
 			return ['error' => $e->getMessage()];
 		} catch (Exception|Throwable $e) {
-			$this->logger->error('Mattermost API error', ['exception' => $e, 'app' => Application::APP_ID]);
+			$this->logger->error('Matrix API error', ['exception' => $e, 'app' => Application::APP_ID]);
 			return ['error' => $e->getMessage()];
 		}
 	}

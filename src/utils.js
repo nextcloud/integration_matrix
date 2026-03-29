@@ -17,16 +17,15 @@ export function delay(callback, ms) {
 	}
 }
 
-export function oauthConnect(mattermostUrl, clientId, oauthOrigin, usePopup = false) {
-	const redirectUri = window.location.protocol + '//' + window.location.host + generateUrl('/apps/integration_mattermost/oauth-redirect')
+export function oauthConnect(matrixUrl, clientId, oauthOrigin, usePopup = false) {
+	const redirectUri = window.location.protocol + '//' + window.location.host + generateUrl('/apps/integration_matrix/oauth-redirect')
 
 	const oauthState = Math.random().toString(36).substring(3)
-	const requestUrl = mattermostUrl + '/oauth/authorize'
+	const requestUrl = matrixUrl + '/_matrix/client/v0/oauth2/authorize'
 		+ '?client_id=' + encodeURIComponent(clientId)
 		+ '&redirect_uri=' + encodeURIComponent(redirectUri)
 		+ '&response_type=code'
 		+ '&state=' + encodeURIComponent(oauthState)
-	// + '&scope=' + encodeURIComponent('read_user read_api read_repository')
 
 	const req = {
 		values: {
@@ -35,13 +34,13 @@ export function oauthConnect(mattermostUrl, clientId, oauthOrigin, usePopup = fa
 			oauth_origin: usePopup ? undefined : oauthOrigin,
 		},
 	}
-	const url = generateUrl('/apps/integration_mattermost/config')
+	const url = generateUrl('/apps/integration_matrix/config')
 	return new Promise((resolve, reject) => {
 		axios.put(url, req).then((response) => {
 			if (usePopup) {
 				const ssoWindow = window.open(
 					requestUrl,
-					t('integration_mattermost', 'Sign in with Mattermost'),
+					t('integration_matrix', 'Sign in with Matrix'),
 					'toolbar=no, menubar=no, width=600, height=700')
 				ssoWindow.focus()
 				window.addEventListener('message', (event) => {
@@ -53,7 +52,7 @@ export function oauthConnect(mattermostUrl, clientId, oauthOrigin, usePopup = fa
 			}
 		}).catch((error) => {
 			showError(
-				t('integration_mattermost', 'Failed to save Mattermost OAuth state')
+				t('integration_matrix', 'Failed to save Matrix OAuth state')
 				+ ': ' + (error.response?.request?.responseText ?? ''),
 			)
 			console.error(error)
@@ -61,27 +60,27 @@ export function oauthConnect(mattermostUrl, clientId, oauthOrigin, usePopup = fa
 	})
 }
 
-export function oauthConnectConfirmDialog(mattermostUrl) {
+export function oauthConnectConfirmDialog(matrixUrl) {
 	return new Promise((resolve, reject) => {
 		new DialogBuilder()
-			.setName(t('integration_mattermost', 'Connect to Mattermost'))
+			.setName(t('integration_matrix', 'Connect to Matrix'))
 			.setText(
-				t('integration_mattermost', 'You need to connect to a Mattermost server before using the Mattermost integration.')
+				t('integration_matrix', 'You need to connect to a Matrix server before using the Matrix integration.')
 				+ ' --- '
-				+ t('integration_mattermost', 'You can choose another Mattermost server in the "Mattermost" section of your personal settings.')
+				+ t('integration_matrix', 'You can choose another Matrix server in the "Matrix" section of your personal settings.')
 				+ ' --- '
-				+ t('integration_mattermost', 'Do you want to connect to {mmUrl}?', { mmUrl: mattermostUrl }),
+				+ t('integration_matrix', 'Do you want to connect to {matrixUrl}?', { matrixUrl }),
 			)
 			.setButtons([
 				{
-					label: t('integration_mattermost', 'Cancel'),
+					label: t('integration_matrix', 'Cancel'),
 					variant: 'secondary',
 					callback: () => {
 						reject(new Error('OAuth connection canceled'))
 					},
 				},
 				{
-					label: t('integration_mattermost', 'Connect'),
+					label: t('integration_matrix', 'Connect'),
 					variant: 'primary',
 					callback: () => {
 						resolve()
@@ -96,21 +95,21 @@ export function oauthConnectConfirmDialog(mattermostUrl) {
 export function gotoSettingsConfirmDialog() {
 	const settingsLink = generateUrl('/settings/user/connected-accounts')
 	new DialogBuilder()
-		.setName(t('integration_mattermost', 'Connect to Mattermost'))
+		.setName(t('integration_matrix', 'Connect to Matrix'))
 		.setText(
-			t('integration_mattermost', 'You need to connect to a Mattermost server before using the Mattermost integration.')
+			t('integration_matrix', 'You need to connect to a Matrix server before using the Matrix integration.')
 			+ ' --- '
-			+ t('integration_mattermost', 'Do you want to go to your "Connected accounts" personal settings?'),
+			+ t('integration_matrix', 'Do you want to go to your "Connected accounts" personal settings?'),
 		)
 		.setButtons([
 			{
-				label: t('integration_mattermost', 'Cancel'),
+				label: t('integration_matrix', 'Cancel'),
 				variant: 'secondary',
 				callback: () => {
 				},
 			},
 			{
-				label: t('integration_mattermost', 'Go to settings'),
+				label: t('integration_matrix', 'Go to settings'),
 				variant: 'primary',
 				callback: () => {
 					window.location.replace(settingsLink)
@@ -141,25 +140,24 @@ export function humanFileSize(bytes, approx = false, si = false, dp = 1) {
 
 	if (approx) {
 		return Math.floor(bytes) + ' ' + units[u]
-	} else {
-		return bytes.toFixed(dp) + ' ' + units[u]
 	}
+	return bytes.toFixed(dp) + ' ' + units[u]
 }
 
 export const SEND_TYPE = {
 	file: {
 		id: 'file',
-		label: t('integration_mattermost', 'Upload files'),
+		label: t('integration_matrix', 'Upload files'),
 		icon: FileOutlineIcon,
 	},
 	public_link: {
 		id: 'public_link',
-		label: t('integration_mattermost', 'Public links'),
+		label: t('integration_matrix', 'Public links'),
 		icon: LinkVariantIcon,
 	},
 	internal_link: {
 		id: 'internal_link',
-		label: t('integration_mattermost', 'Internal links (Only works for users with access to the files)'),
+		label: t('integration_matrix', 'Internal links (Only works for users with access to the files)'),
 		icon: OpenInNewIcon,
 	},
 }
