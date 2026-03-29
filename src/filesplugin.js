@@ -14,15 +14,8 @@ import moment from '@nextcloud/moment'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
-import { oauthConnect, oauthConnectConfirmDialog, gotoSettingsConfirmDialog, SEND_TYPE } from './utils.js'
+import { SEND_TYPE } from './utils.js'
 import { registerFileAction, Permission } from '@nextcloud/files'
-import {
-	getClient,
-	getDefaultPropfind,
-	resultToNode,
-	defaultRootPath,
-} from '@nextcloud/files/dav'
-import { subscribe } from '@nextcloud/event-bus'
 import MatrixIcon from '../img/app.svg'
 
 import { createApp } from 'vue'
@@ -38,11 +31,6 @@ if (!OCA.Matrix) {
 		filesToSend: [],
 		currentFileList: null,
 	}
-}
-
-subscribe('files:list:updated', onFilesListUpdated)
-function onFilesListUpdated({ view, folder, contents }) {
-	OCA.Matrix.currentFileList = { view, folder, contents }
 }
 
 function openRoomSelector(files) {
@@ -88,88 +76,9 @@ function sendSelectedNodes(nodes) {
 	})
 	if (OCA.Matrix.matrixConnected) {
 		openRoomSelector(formattedNodes)
-	} else if (OCA.Matrix.oauthPossible) {
-		connectToMatrix(formattedNodes)
 	} else {
-		gotoSettingsConfirmDialog()
+		showError(t('integration_matrix', 'You need to connect to Matrix first in your personal settings'))
 	}
-}
-
-function checkIfFilesToSend() {
-	const urlCheckConnection = generateUrl('/apps/integration_matrix/files-to-send')
-	axios.get(urlCheckConnection)
-		.then((response) => {
-			const fileIdsStr = response?.data?.file_ids_to_send_after_oauth
-			const currentDir = response?.data?.current_dir_after_oauth
-			if (fileIdsStr && currentDir) {
-				sendFileIdsAfterOAuth(fileIdsStr, currentDir)
-			} else {
-				if (DEBUG) console.debug('[Matrix] nothing to send')
-			}
-		})
-		.catch((error) => {
-			console.error(error)
-		})
-}
-
-/**
- * In case we successfully connected with oauth and got redirected back to files
- * actually go on with the files that were previously selected
- *
- * @param {string} fileIdsStr list of files to send
- * @param {string} currentDir path to the current dir
- */
-async function sendFileIdsAfterOAuth(fileIdsStr, currentDir) {
-	if (DEBUG) console.debug('[Matrix] in sendFileIdsAfterOAuth, fileIdsStr, currentDir', fileIdsStr, currentDir)
-	if (fileIdsStr) {
-		const client = getClient()
-		const results = await client.getDirectoryContents(`${defaultRootPath}${currentDir}`, {
-			details: true,
-			data: getDefaultPropfind(),
-		})
-		const nodes = results.data.map((r) => resultToNode(r))
-
-		const fileIds = fileIdsStr.split(',')
-		const files = fileIds.map((fid) => {
-			const f = nodes.find((n) => n.fileid === parseInt(fid))
-			if (f) {
-				return {
-					id: f.fileid,
-					name: f.basename,
-					type: f.type,
-					size: f.size,
-				}
-			}
-			return null
-		}).filter((e) => e !== null)
-		if (DEBUG) console.debug('[Matrix] in sendFileIdsAfterOAuth, after changeDirectory, files:', files)
-		if (files.length) {
-			if (DEBUG) console.debug('[Matrix] in sendFileIdsAfterOAuth, after changeDirectory, call openRoomSelector')
-			openRoomSelector(files)
-		}
-	}
-}
-
-function connectToMatrix(selectedFiles = []) {
-	oauthConnectConfirmDialog(OCA.Matrix.matrixUrl).then(() => {
-		if (OCA.Matrix.usePopup) {
-			oauthConnect(OCA.Matrix.matrixUrl, OCA.Matrix.clientId, null, true)
-				.then((data) => {
-					OCA.Matrix.matrixConnected = true
-					openRoomSelector(selectedFiles)
-				})
-		} else {
-			const selectedFilesIds = selectedFiles.map(f => f.id)
-			const currentDirectory = OCA.Matrix.currentFileList?.folder?.attributes?.filename
-			oauthConnect(
-				OCA.Matrix.matrixUrl,
-				OCA.Matrix.clientId,
-				'files--' + currentDirectory + '--' + selectedFilesIds.join(','),
-			)
-		}
-	}).catch((error) => {
-		console.debug('Oauth error', error)
-	})
 }
 
 // ///////////////// Network
@@ -358,16 +267,8 @@ modalElement.addEventListener('validate', (data) => {
 const urlCheckConnection = generateUrl('/apps/integration_matrix/is-connected')
 axios.get(urlCheckConnection).then((response) => {
 	OCA.Matrix.matrixConnected = response.data.connected
-	OCA.Matrix.oauthPossible = response.data.oauth_possible
-	OCA.Matrix.usePopup = response.data.use_popup
-	OCA.Matrix.clientId = response.data.client_id
 	OCA.Matrix.matrixUrl = response.data.url
 	if (DEBUG) console.debug('[Matrix] OCA.Matrix', OCA.Matrix)
 }).catch((error) => {
 	console.error(error)
-})
-
-document.addEventListener('DOMContentLoaded', () => {
-	if (DEBUG) console.debug('[Matrix] before checkIfFilesToSend')
-	checkIfFilesToSend()
 })

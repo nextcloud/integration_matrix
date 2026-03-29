@@ -60,30 +60,90 @@ class MatrixAPIService {
 	 * @return string
 	 */
 	public function getMatrixUrl(string $userId): string {
-		$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
-		return $this->config->getUserValue($userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
+		return $this->config->getUserValue($userId, Application::APP_ID, 'url') ?: '';
 	}
 
 	/**
 	 * @param string $userId
 	 * @param string $roomId
-	 * @return array|string[]
+	 * @return array
 	 */
-	public function getRoomInfo(string $userId, string $roomId): array {
-		return $this->request($userId, 'rooms/' . urlencode($roomId));
+	public function getRoomInfo(string $userId, string $roomId, string $matrixUserId): array {
+		$state = $this->request($userId, 'rooms/' . urlencode($roomId) . '/state');
+		if (isset($state['error'])) {
+			return [];
+		}
+
+		$roomName = '';
+		$otherJoinedMemberId = null;
+		$otherJoinedMemberDisplayname = null;
+
+		foreach ($state as $event) {
+			if (($event['type'] ?? '') === 'm.room.name') {
+				$roomName = $event['content']['name'] ?? '';
+				if ($roomName !== '') {
+					return [
+						'type' => 'room',
+						'name' => $roomName . ' (' . $roomId . ')',
+						'id' => $roomId,
+					];
+				}
+				break;
+			}
+		}
+
+		if ($roomName === '') {
+			foreach ($state as $event) {
+				if (($event['type'] ?? '') === 'm.room.member') {
+					$stateKey = $event['state_key'] ?? '';
+					$membership = $event['content']['membership'] ?? '';
+					if ($stateKey !== '' && $stateKey !== $matrixUserId && $membership === 'join') {
+						$otherJoinedMemberId = $stateKey;
+						$otherJoinedMemberDisplayname = $event['content']['displayname'] ?? null;
+						break;
+					}
+				}
+			}
+		}
+
+		if ($roomName === '' && $otherJoinedMemberId !== null) {
+			if ($otherJoinedMemberDisplayname !== null && $otherJoinedMemberDisplayname !== '') {
+				return [
+					'type' => 'dm',
+					'name' => $otherJoinedMemberDisplayname . ' (' . $otherJoinedMemberId . ')',
+					'id' => $otherJoinedMemberId,
+				];
+			} else {
+				return [
+					'type' => 'dm',
+					'name' => $otherJoinedMemberId,
+					'id' => $otherJoinedMemberId,
+				];
+			}
+		}
+
+		return [
+			'type' => 'room',
+			'name' => $roomId,
+			'id' => $roomId,
+		];
 	}
 
 	/**
 	 * @param string $userId
-	 * @return array|string[]
+	 * @return array
 	 * @throws PreConditionNotMetException
 	 */
 	public function getMyRooms(string $userId): array {
+		$matrixUserId = $this->config->getUserValue($userId, Application::APP_ID, 'user_id');
 		$result = $this->request($userId, 'joined_rooms');
-		if (isset($result['chunk'])) {
-			return $result['chunk'];
-		}
-		return $result ?? [];
+		$roomIds = $result['joined_rooms'] ?? [];
+		return array_map(function(string $roomId) use ($userId, $matrixUserId) {
+			return [
+				'id' => $roomId,
+				'info' => $this->getRoomInfo($userId, $roomId, $matrixUserId),
+			];
+		}, $roomIds);
 	}
 
 	/**
@@ -234,13 +294,12 @@ class MatrixAPIService {
 	 * @return array
 	 */
 	private function uploadFile(string $userId, File $file): array {
-		$this->checkTokenExpiration($userId);
 		$matrixUrl = $this->getMatrixUrl($userId);
 		$accessToken = $this->config->getUserValue($userId, Application::APP_ID, 'token');
 		$accessToken = $accessToken === '' ? '' : $this->crypto->decrypt($accessToken);
 
 		try {
-			$url = $matrixUrl . '/_matrix/client/v0/media/upload';
+			$url = $matrixUrl . '/_matrix/client/v3/media/upload';
 			$options = [
 				'headers' => [
 					'Authorization' => 'Bearer ' . $accessToken,
@@ -281,123 +340,7 @@ class MatrixAPIService {
 		bool $jsonResponse = true,
 	) {
 		$matrixUrl = $this->getMatrixUrl($userId);
-		$this->checkTokenExpiration($userId);
 		return $this->networkService->request($userId, $matrixUrl, $endPoint, $params, $method, $jsonResponse);
-	}
-
-	/**
-	 * @param string $userId
-	 * @return void
-	 * @throws \OCP\PreConditionNotMetException
-	 */
-	private function checkTokenExpiration(string $userId): void {
-		$refreshToken = $this->config->getUserValue($userId, Application::APP_ID, 'refresh_token');
-		$expireAt = $this->config->getUserValue($userId, Application::APP_ID, 'token_expires_at');
-		if ($refreshToken !== '' && $expireAt !== '') {
-			$nowTs = (new DateTime())->getTimestamp();
-			$expireAt = (int)$expireAt;
-			if ($nowTs > $expireAt - 60) {
-				$this->refreshToken($userId);
-			}
-		}
-	}
-
-	/**
-	 * @param string $userId
-	 * @return bool
-	 * @throws \OCP\PreConditionNotMetException
-	 */
-	private function refreshToken(string $userId): bool {
-		$matrixUrl = $this->getMatrixUrl($userId);
-		$clientID = $this->appConfig->getAppValueString('client_id', lazy: true);
-		$clientSecret = $this->appConfig->getAppValueString('client_secret', lazy: true);
-		$redirect_uri = $this->config->getUserValue($userId, Application::APP_ID, 'redirect_uri');
-		$refreshToken = $this->config->getUserValue($userId, Application::APP_ID, 'refresh_token');
-		$refreshToken = $refreshToken === '' ? '' : $this->crypto->decrypt($refreshToken);
-		if (!$refreshToken) {
-			$this->logger->error('No Matrix refresh token found', ['app' => Application::APP_ID]);
-			return false;
-		}
-		$result = $this->requestOAuthAccessToken($matrixUrl, [
-			'client_id' => $clientID,
-			'client_secret' => $clientSecret,
-			'grant_type' => 'refresh_token',
-			'redirect_uri' => $redirect_uri,
-			'refresh_token' => $refreshToken,
-		], 'POST');
-		if (isset($result['access_token'])) {
-			$this->logger->info('Matrix access token successfully refreshed', ['app' => Application::APP_ID]);
-			$accessToken = $result['access_token'];
-			$encryptedToken = $accessToken === '' ? '' : $this->crypto->encrypt($accessToken);
-			$refreshToken = $result['refresh_token'] ?? '';
-			$encryptedRefreshToken = $refreshToken === '' ? '' : $this->crypto->encrypt($refreshToken);
-			$this->config->setUserValue($userId, Application::APP_ID, 'token', $encryptedToken);
-			$this->config->setUserValue($userId, Application::APP_ID, 'refresh_token', $encryptedRefreshToken);
-			if (isset($result['expires_in'])) {
-				$nowTs = (new DateTime())->getTimestamp();
-				$expiresAt = $nowTs + (int)$result['expires_in'];
-				$this->config->setUserValue($userId, Application::APP_ID, 'token_expires_at', strval($expiresAt));
-			}
-			return true;
-		}
-		$this->logger->error(
-			'Token is not valid anymore. Impossible to refresh it. '
-				. ($result['error'] ?? 'unknown error') . ' '
-				. ($result['error_description'] ?? '[no error description]'),
-			['app' => Application::APP_ID]
-		);
-		return false;
-	}
-
-	/**
-	 * Matrix OAuth2 token endpoint
-	 *
-	 * @param string $url
-	 * @param array $params
-	 * @param string $method
-	 * @return array
-	 */
-	public function requestOAuthAccessToken(string $url, array $params = [], string $method = 'GET'): array {
-		try {
-			$url = $url . '/_matrix/client/v0/oauth2/token';
-			$options = [
-				'headers' => [
-					'User-Agent' => Application::INTEGRATION_USER_AGENT,
-					'Content-Type' => 'application/x-www-form-urlencoded',
-				]
-			];
-
-			if (count($params) > 0) {
-				if ($method === 'GET') {
-					$paramsContent = http_build_query($params);
-					$url .= '?' . $paramsContent;
-				} else {
-					$options['body'] = http_build_query($params);
-				}
-			}
-
-			if ($method === 'GET') {
-				$response = $this->client->get($url, $options);
-			} elseif ($method === 'POST') {
-				$response = $this->client->post($url, $options);
-			} elseif ($method === 'PUT') {
-				$response = $this->client->put($url, $options);
-			} elseif ($method === 'DELETE') {
-				$response = $this->client->delete($url, $options);
-			} else {
-				return ['error' => $this->l10n->t('Bad HTTP method')];
-			}
-			$body = $response->getBody();
-			$respCode = $response->getStatusCode();
-
-			if ($respCode >= 400) {
-				return ['error' => $this->l10n->t('OAuth access token refused')];
-			}
-			return json_decode($body, true) ?? [];
-		} catch (Exception $e) {
-			$this->logger->error('Matrix OAuth error: ' . $e->getMessage(), ['app' => Application::APP_ID]);
-			return ['error' => $e->getMessage()];
-		}
 	}
 
 	/**

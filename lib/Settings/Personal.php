@@ -33,21 +33,11 @@ class Personal implements ISettings {
 		$matrixUserId = $this->config->getUserValue($this->userId, Application::APP_ID, 'user_id');
 		$matrixUserName = $this->config->getUserValue($this->userId, Application::APP_ID, 'user_name');
 		$matrixUserDisplayName = $this->config->getUserValue($this->userId, Application::APP_ID, 'user_displayname');
-		$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
-		$url = $this->config->getUserValue($this->userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
-
-		$clientID = $this->appConfig->getAppValueString('client_id', lazy: true);
-		$clientSecret = $this->appConfig->getAppValueString('client_secret', lazy: true);
-		$oauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
-		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true);
+		$url = $this->config->getUserValue($this->userId, Application::APP_ID, 'url');
 
 		$userConfig = [
 			'token' => $token !== '' ? 'dummyTokenContent' : '',
 			'url' => $url,
-			'client_id' => $clientID,
-			'client_secret' => $clientSecret !== '',
-			'oauth_instance_url' => $oauthUrl,
-			'use_popup' => $usePopup === '1',
 			'user_id' => $matrixUserId,
 			'user_name' => $matrixUserName,
 			'user_displayname' => $matrixUserDisplayName,

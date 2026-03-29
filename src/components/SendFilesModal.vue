@@ -75,9 +75,9 @@
 								display-name="#" />
 							<NcAvatar v-else
 								:size="34"
-								display-name="#" />
+								:display-name="option.info.type === 'room' ? 'R' : 'U'" />
 							<NcHighlight
-								:text="option.name"
+								:text="option.info.name"
 								:search="query"
 								class="multiselect-name" />
 						</div>
@@ -86,10 +86,10 @@
 						<NcAvatar v-if="option.avatar_url"
 							:size="24"
 							:url="option.avatar_url"
-							display-name="#" />
+							:display-name="option.info.type === 'room' ? 'R' : 'U'" />
 						<span v-else
 							class="multiselect-name">
-							{{ option.name }}
+							{{ option.info.name }}
 						</span>
 					</template>
 				</NcSelect>
@@ -297,6 +297,7 @@ export default {
 				&& this.files.length > 0
 		},
 		sortedRooms() {
+			console.debug('aaaaaaaaaa sortedRooms', this.rooms)
 			return this.rooms.slice().sort((a, b) => {
 				const nameA = a.name || ''
 				const nameB = b.name || ''

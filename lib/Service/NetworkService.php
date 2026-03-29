@@ -63,7 +63,7 @@ class NetworkService {
 		$accessToken = $this->config->getUserValue($userId, Application::APP_ID, 'token');
 		$accessToken = $accessToken === '' ? '' : $this->crypto->decrypt($accessToken);
 		try {
-			$url = $matrixUrl . '/_matrix/client/v0/' . $endPoint;
+			$url = $matrixUrl . '/_matrix/client/v3/' . $endPoint;
 			$options = [
 				'headers' => [
 					'Authorization' => 'Bearer ' . $accessToken,

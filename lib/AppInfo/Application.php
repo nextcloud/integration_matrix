@@ -71,8 +71,7 @@ class Application extends App implements IBootstrap {
 			$container = $this->getContainer();
 			$navlinkDefault = $this->appConfig->getAppValueString('navlink_default', lazy: true);
 			if ($this->config->getUserValue($userId, self::APP_ID, 'navigation_enabled', $navlinkDefault) === '1') {
-				$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
-				$matrixUrl = $this->config->getUserValue($userId, self::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
+				$matrixUrl = $this->config->getUserValue($userId, self::APP_ID, 'url');
 				if ($matrixUrl === '') {
 					return;
 				}
