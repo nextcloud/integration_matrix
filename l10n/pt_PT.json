@@ -1,0 +1,18 @@
+{ "translations": {
+    "Error during OAuth exchanges" : "Erro durante trocas com o OAuth",
+    "Bad credentials" : "Credenciais inválidas",
+    "Bad HTTP method" : "Método HTTP incorreto",
+    "Login" : "Iniciar sessão",
+    "Password" : "Palavra-passe",
+    "View only" : "Visualizar apenas",
+    "Edit" : "Editar",
+    "Files" : "Ficheiros",
+    "Type" : "Tipo",
+    "Set expiration date" : "Definir a data de expiração",
+    "Comment" : "Comentário",
+    "Cancel" : "Cancelar",
+    "Connect" : "Ligar",
+    "Upload files" : "Enviar ficheiros",
+    "Internal links (Only works for users with access to the files)" : "Links internos (Funcionam apenas para utilizadores com acesso aos ficheiros)"
+},"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
+}

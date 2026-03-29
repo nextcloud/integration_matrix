@@ -1,0 +1,13 @@
+{ "translations": {
+    "Login" : "Login",
+    "Password" : "Pasvorto",
+    "Edit" : "Modifi",
+    "Files" : "Dosieroj",
+    "Type" : "Tipo",
+    "Set expiration date" : "Uzi limdaton",
+    "Comment" : "Komento",
+    "Cancel" : "Nuligi",
+    "Connect" : "Konekti",
+    "Upload files" : "Alŝuti dosierojn"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

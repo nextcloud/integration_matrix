@@ -1,0 +1,13 @@
+{ "translations": {
+    "Login" : "Aseqdac",
+    "Password" : "Awal uffir",
+    "Connected as {user}" : "D uqqin am {user}",
+    "Edit" : "Ẓreg",
+    "Files" : "Ifuyla",
+    "Type" : "Anaw",
+    "Comment" : "Commentaire",
+    "Cancel" : "Sefsex",
+    "Connect" : "Qqen",
+    "Upload files" : "Azen ifuyla"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

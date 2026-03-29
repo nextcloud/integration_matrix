@@ -1,0 +1,11 @@
+{ "translations": {
+    "Login" : "Login",
+    "Password" : "Şifrə",
+    "Edit" : "Dəyişiklik et",
+    "Files" : "Fayllar",
+    "Type" : "Type",
+    "Comment" : "Komentariya",
+    "Cancel" : "Dayandır",
+    "Connect" : "Qoşul"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}
