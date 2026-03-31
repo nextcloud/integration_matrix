@@ -324,7 +324,7 @@ class MatrixAPIService {
 		$accessToken = $accessToken === '' ? '' : $this->crypto->decrypt($accessToken);
 
 		try {
-			$url = $matrixUrl . '/_matrix/client/v3/media/upload';
+			$url = $matrixUrl . '/_matrix/media/v3/upload?filename=' . urlencode($file->getName());
 			$options = [
 				'headers' => [
 					'Authorization' => 'Bearer ' . $accessToken,
