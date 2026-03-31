@@ -39,6 +39,10 @@ use Psr\Log\LoggerInterface;
 class MatrixAPIService {
 
 	private IClient $client;
+	/**
+	 * @var array<string, string>
+	 */
+	private array $resolvedMatrixUrlCache = [];
 
 	public function __construct(
 		private LoggerInterface $logger,
@@ -59,9 +63,81 @@ class MatrixAPIService {
 	 * @param string $userId
 	 * @return string
 	 */
-	public function getMatrixUrl(string $userId): string {
+	public function getConfiguredMatrixUrl(string $userId): string {
 		$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
 		return $this->config->getUserValue($userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
+	}
+
+	/**
+	 * @param string $userId
+	 * @return string
+	 */
+	public function getMatrixUrl(string $userId): string {
+		return $this->resolveMatrixUrl($this->getConfiguredMatrixUrl($userId));
+	}
+
+	/**
+	 * @param string $matrixUrl
+	 * @return string
+	 */
+	public function resolveMatrixUrl(string $matrixUrl): string {
+		$matrixUrl = $this->normalizeMatrixUrl($matrixUrl);
+		if ($matrixUrl === '') {
+			return '';
+		}
+
+		if (isset($this->resolvedMatrixUrlCache[$matrixUrl])) {
+			return $this->resolvedMatrixUrlCache[$matrixUrl];
+		}
+
+		$discoveryUrl = $this->getWellKnownUrl($matrixUrl);
+		if ($discoveryUrl === '') {
+			$this->resolvedMatrixUrlCache[$matrixUrl] = $matrixUrl;
+			return $matrixUrl;
+		}
+
+		try {
+			$response = $this->client->get($discoveryUrl, [
+				'headers' => [
+					'User-Agent' => Application::INTEGRATION_USER_AGENT,
+					'Accept' => 'application/json',
+				],
+			]);
+			$wellKnown = json_decode($response->getBody(), true);
+			$baseUrl = is_array($wellKnown) ? ($wellKnown['m.homeserver']['base_url'] ?? '') : '';
+			if (is_string($baseUrl) && $baseUrl !== '') {
+				$resolvedUrl = $this->normalizeMatrixUrl($baseUrl);
+				if ($resolvedUrl !== '' && $this->getWellKnownUrl($resolvedUrl) !== '') {
+					$this->resolvedMatrixUrlCache[$matrixUrl] = $resolvedUrl;
+					return $resolvedUrl;
+				}
+			}
+		} catch (ServerException|ClientException) {
+			// Fall back to the configured URL when discovery is unavailable.
+		} catch (Exception $e) {
+			$this->logger->debug('Matrix homeserver discovery error: ' . $e->getMessage(), ['app' => Application::APP_ID]);
+		}
+
+		$this->resolvedMatrixUrlCache[$matrixUrl] = $matrixUrl;
+		return $matrixUrl;
+	}
+
+	/**
+	 * @param string $left
+	 * @param string $right
+	 * @return bool
+	 */
+	public function sameMatrixServer(string $left, string $right): bool {
+		return $this->resolveMatrixUrl($left) === $this->resolveMatrixUrl($right);
+	}
+
+	/**
+	 * @param string $matrixUrl
+	 * @return string
+	 */
+	public function normalizeMatrixUrl(string $matrixUrl): string {
+		$matrixUrl = trim($matrixUrl);
+		return $matrixUrl === '' ? '' : rtrim($matrixUrl, '/');
 	}
 
 	/**
@@ -376,6 +452,7 @@ class MatrixAPIService {
 	 * @return array
 	 */
 	public function getAuthMetadata(string $matrixUrl): array {
+		$matrixUrl = $this->resolveMatrixUrl($matrixUrl);
 		try {
 			$response = $this->client->get($matrixUrl . '/_matrix/client/v1/auth_metadata', [
 				'headers' => [
@@ -543,5 +620,25 @@ class MatrixAPIService {
 	 */
 	private function generateTxnId(): string {
 		return sprintf('%d-%s', (new DateTime())->getTimestamp(), bin2hex(random_bytes(8)));
+	}
+
+	/**
+	 * @param string $matrixUrl
+	 * @return string
+	 */
+	private function getWellKnownUrl(string $matrixUrl): string {
+		$parts = parse_url($matrixUrl);
+		$scheme = $parts['scheme'] ?? '';
+		$host = $parts['host'] ?? '';
+		if (!is_string($scheme) || !is_string($host) || $scheme === '' || $host === '') {
+			return '';
+		}
+
+		$wellKnownUrl = $scheme . '://' . $host;
+		if (isset($parts['port']) && is_int($parts['port'])) {
+			$wellKnownUrl .= ':' . $parts['port'];
+		}
+
+		return $wellKnownUrl . '/.well-known/matrix/client';
 	}
 }

@@ -3,6 +3,7 @@
 namespace OCA\Matrix\Settings;
 
 use OCA\Matrix\AppInfo\Application;
+use OCA\Matrix\Service\MatrixAPIService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
@@ -17,6 +18,7 @@ class Personal implements ISettings {
 		private IConfig $config,
 		private IInitialState $initialStateService,
 		private ICrypto $crypto,
+		private MatrixAPIService $matrixAPIService,
 		private ?string $userId,
 	) {
 	}
@@ -34,17 +36,19 @@ class Personal implements ISettings {
 		$matrixUserName = $this->config->getUserValue($this->userId, Application::APP_ID, 'user_name');
 		$matrixUserDisplayName = $this->config->getUserValue($this->userId, Application::APP_ID, 'user_displayname');
 		$oauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
+		$oauthApiUrl = $oauthUrl !== '' ? $this->matrixAPIService->resolveMatrixUrl($oauthUrl) : '';
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$registeredClientUrl = $this->appConfig->getAppValueString('registered_client_url', lazy: true);
 		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true) === '1';
 		$url = $this->config->getUserValue($this->userId, Application::APP_ID, 'url');
 		$oauthConfigured = $oauthUrl !== '' && $clientId !== '' && $this->isAdminOauthClientCompatible($oauthUrl, $registeredClientUrl);
-		$oauthBlockedByUserUrl = $oauthConfigured && $url !== '' && !$this->sameHomeserverUrl($url, $oauthUrl);
+		$oauthBlockedByUserUrl = $oauthConfigured && $url !== '' && !$this->matrixAPIService->sameMatrixServer($url, $oauthUrl);
 
 		$userConfig = [
 			'token' => $token !== '' ? 'dummyTokenContent' : '',
 			'url' => $url,
 			'oauth_instance_url' => $oauthUrl,
+			'oauth_instance_api_url' => $oauthApiUrl,
 			'oauth_configured' => $oauthConfigured,
 			'oauth_possible' => $oauthConfigured && !$oauthBlockedByUserUrl,
 			'oauth_blocked_by_user_url' => $oauthBlockedByUserUrl,
@@ -59,22 +63,12 @@ class Personal implements ISettings {
 		return new TemplateResponse(Application::APP_ID, 'personalSettings');
 	}
 
-	private function normalizeHomeserverUrl(string $url): string {
-		$url = trim($url);
-		return $url === '' ? '' : rtrim($url, '/');
-	}
-
-	private function sameHomeserverUrl(string $left, string $right): bool {
-		return $this->normalizeHomeserverUrl($left) === $this->normalizeHomeserverUrl($right);
-	}
-
 	private function isAdminOauthClientCompatible(string $adminOauthUrl, string $registeredClientUrl): bool {
-		$registeredClientUrl = $this->normalizeHomeserverUrl($registeredClientUrl);
 		if ($registeredClientUrl === '') {
 			return true;
 		}
 
-		return $registeredClientUrl === $this->normalizeHomeserverUrl($adminOauthUrl);
+		return $this->matrixAPIService->sameMatrixServer($registeredClientUrl, $adminOauthUrl);
 	}
 
 	public function getSection(): string {

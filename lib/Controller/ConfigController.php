@@ -180,6 +180,9 @@ class ConfigController extends Controller {
 					$this->config->deleteUserValue($this->userId, Application::APP_ID, $configKey);
 				}
 			} else {
+				if ($key === 'url') {
+					$value = $this->matrixAPIService->normalizeMatrixUrl($value);
+				}
 				$this->config->setUserValue($this->userId, Application::APP_ID, $key, $value);
 			}
 		}
@@ -214,7 +217,7 @@ class ConfigController extends Controller {
 				continue;
 			}
 			if ($key === 'oauth_instance_url') {
-				$value = $this->normalizeHomeserverUrl($value);
+				$value = $this->matrixAPIService->normalizeMatrixUrl($value);
 			}
 			$this->appConfig->setAppValueString($key, $value, lazy: true);
 		}
@@ -261,7 +264,7 @@ class ConfigController extends Controller {
 	 */
 	#[PasswordConfirmationRequired]
 	public function registerAdminOauthClient(): DataResponse {
-		$matrixUrl = $this->normalizeHomeserverUrl($this->request->getParam('oauth_instance_url', ''));
+		$matrixUrl = $this->matrixAPIService->normalizeMatrixUrl($this->request->getParam('oauth_instance_url', ''));
 		if ($matrixUrl === '') {
 			return new DataResponse(['error' => $this->l->t('Please provide a Matrix OAuth homeserver URL first')], Http::STATUS_BAD_REQUEST);
 		}
@@ -298,19 +301,21 @@ class ConfigController extends Controller {
 
 		$this->appConfig->setAppValueString('oauth_instance_url', $matrixUrl, lazy: true);
 		$this->appConfig->setAppValueString('client_id', $clientId, lazy: true);
+		$resolvedMatrixUrl = $this->matrixAPIService->resolveMatrixUrl($matrixUrl);
 		$clientSecret = (string)($registrationResponse['client_secret'] ?? '');
 		if ($clientSecret !== '') {
 			$this->appConfig->setAppValueString('client_secret', $clientSecret, lazy: true, sensitive: true);
 		} else {
 			$this->appConfig->deleteAppValue('client_secret');
 		}
-		$this->appConfig->setAppValueString('registered_client_url', $matrixUrl, lazy: true);
+		$this->appConfig->setAppValueString('registered_client_url', $resolvedMatrixUrl, lazy: true);
 
 		return new DataResponse([
 			'client_id' => $clientId,
 			'client_secret' => $clientSecret !== '' ? 'dummySecret' : '',
 			'oauth_instance_url' => $matrixUrl,
-			'registered_client_url' => $matrixUrl,
+			'oauth_instance_api_url' => $resolvedMatrixUrl,
+			'registered_client_url' => $resolvedMatrixUrl,
 		]);
 	}
 
@@ -464,11 +469,6 @@ class ConfigController extends Controller {
 		);
 	}
 
-	private function normalizeHomeserverUrl(string $url): string {
-		$url = trim($url);
-		return $url === '' ? '' : rtrim($url, '/');
-	}
-
 	private function isOAuthPossibleForUserUrl(string $userMatrixUrl, string $adminOauthUrl, string $clientId, string $registeredClientUrl): bool {
 		if ($adminOauthUrl === '' || $clientId === '' || !$this->isAdminOauthClientCompatible($adminOauthUrl, $registeredClientUrl)) {
 			return false;
@@ -478,18 +478,15 @@ class ConfigController extends Controller {
 	}
 
 	private function isAdminOauthClientCompatible(string $adminOauthUrl, string $registeredClientUrl): bool {
-		$normalizedRegisteredClientUrl = $this->normalizeHomeserverUrl($registeredClientUrl);
-		if ($normalizedRegisteredClientUrl === '') {
+		if ($registeredClientUrl === '') {
 			return true;
 		}
 
-		return $normalizedRegisteredClientUrl === $this->normalizeHomeserverUrl($adminOauthUrl);
+		return $this->matrixAPIService->sameMatrixServer($registeredClientUrl, $adminOauthUrl);
 	}
 
 	private function isUserAllowedToUseAdminOauth(string $userMatrixUrl, string $adminOauthUrl): bool {
-		$effectiveUserUrl = $this->normalizeHomeserverUrl($userMatrixUrl);
-		$effectiveAdminUrl = $this->normalizeHomeserverUrl($adminOauthUrl);
-		return $effectiveUserUrl === '' || $effectiveUserUrl === $effectiveAdminUrl;
+		return $userMatrixUrl === '' || $this->matrixAPIService->sameMatrixServer($userMatrixUrl, $adminOauthUrl);
 	}
 
 	/**

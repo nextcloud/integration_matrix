@@ -131,7 +131,7 @@ export default {
 
 	computed: {
 		hasRegisteredClientMismatch() {
-			return !!this.state.registered_client_url && this.normalizeUrl(this.state.registered_client_url) !== this.normalizeUrl(this.state.oauth_instance_url)
+			return !!this.state.registered_client_url && !!this.state.oauth_instance_api_url && this.normalizeUrl(this.state.registered_client_url) !== this.normalizeUrl(this.state.oauth_instance_api_url)
 		},
 	},
 
@@ -146,6 +146,7 @@ export default {
 			this.saveOptions({ navlink_default: newValue ? '1' : '0' }, false)
 		},
 		onInput() {
+			this.state.oauth_instance_api_url = ''
 			delay(() => {
 				this.saveOptions({
 					oauth_instance_url: this.normalizeUrl(this.state.oauth_instance_url),
@@ -188,6 +189,7 @@ export default {
 				oauth_instance_url: this.normalizeUrl(this.state.oauth_instance_url),
 			}).then((response) => {
 				this.state.oauth_instance_url = response.data.oauth_instance_url
+				this.state.oauth_instance_api_url = response.data.oauth_instance_api_url
 				this.state.client_id = response.data.client_id
 				this.state.client_secret = response.data.client_secret
 				this.state.registered_client_url = response.data.registered_client_url
