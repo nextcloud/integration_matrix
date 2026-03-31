@@ -73,12 +73,21 @@ class MatrixAPIService {
 		if (isset($state['error'])) {
 			return [];
 		}
+		return $this->parseRoomInfoFromState($state, $roomId, $matrixUserId);
+	}
 
+	/**
+	 * @param array $stateEvents
+	 * @param string $roomId
+	 * @param string $matrixUserId
+	 * @return array
+	 */
+	private function parseRoomInfoFromState(array $stateEvents, string $roomId, string $matrixUserId): array {
 		$roomName = '';
 		$otherJoinedMemberId = null;
 		$otherJoinedMemberDisplayname = null;
 
-		foreach ($state as $event) {
+		foreach ($stateEvents as $event) {
 			if (($event['type'] ?? '') === 'm.room.name') {
 				$roomName = $event['content']['name'] ?? '';
 				if ($roomName !== '') {
@@ -93,7 +102,7 @@ class MatrixAPIService {
 		}
 
 		if ($roomName === '') {
-			foreach ($state as $event) {
+			foreach ($stateEvents as $event) {
 				if (($event['type'] ?? '') === 'm.room.member') {
 					$stateKey = $event['state_key'] ?? '';
 					$membership = $event['content']['membership'] ?? '';
@@ -136,14 +145,30 @@ class MatrixAPIService {
 	 */
 	public function getMyRooms(string $userId): array {
 		$matrixUserId = $this->config->getUserValue($userId, Application::APP_ID, 'user_id');
-		$result = $this->request($userId, 'joined_rooms');
-		$roomIds = $result['joined_rooms'] ?? [];
-		return array_map(function(string $roomId) use ($userId, $matrixUserId) {
-			return [
+		$filter = json_encode([
+			'room' => [
+				'state' => [
+					'lazy_load_members' => true,
+				],
+			],
+		]);
+		$result = $this->request($userId, 'sync?filter=' . urlencode($filter));
+		if (isset($result['error'])) {
+			return [];
+		}
+
+		$joinedRooms = $result['rooms']['join'] ?? [];
+		$rooms = [];
+		foreach ($joinedRooms as $roomId => $roomData) {
+			$timelineEvents = $roomData['timeline']['events'] ?? [];
+			$stateEvents = $roomData['state']['events'] ?? [];
+			$allEvents = array_merge($stateEvents, $timelineEvents);
+			$rooms[] = [
 				'id' => $roomId,
-				'info' => $this->getRoomInfo($userId, $roomId, $matrixUserId),
+				'info' => $this->parseRoomInfoFromState($allEvents, $roomId, $matrixUserId),
 			];
-		}, $roomIds);
+		}
+		return $rooms;
 	}
 
 	/**
