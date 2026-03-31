@@ -229,6 +229,7 @@ function sendMessage(roomId, message, remoteFileIds = undefined) {
 		roomId,
 		remoteFileIds,
 	}
+	console.debug('aaaaaaaaaaaaaaa sendMessage', req)
 	const url = generateUrl('apps/integration_matrix/sendMessage')
 	return axios.post(url, req)
 }

@@ -342,8 +342,8 @@ export default {
 			this.loading = true
 			const _data = {
 				filesToSend: [...this.files],
-				roomId: this.selectedRoom.room_id,
-				roomName: this.selectedRoom.name,
+				roomId: this.selectedRoom.id,
+				roomName: this.selectedRoom.info.name,
 				type: this.sendType,
 				comment: this.comment,
 				permission: this.selectedPermission,
@@ -384,10 +384,10 @@ export default {
 			return generateUrl('/apps/integration_matrix/preview?id={fileId}&x=100&y=100', { fileId })
 		},
 		fileStarted(id) {
-			this.$set(this.fileStates, id, STATES.IN_PROGRESS)
+			this.fileStates[id] = STATES.IN_PROGRESS
 		},
 		fileFinished(id) {
-			this.$set(this.fileStates, id, STATES.FINISHED)
+			this.fileStates[id] = STATES.FINISHED
 		},
 		isDateDisabled(d) {
 			const now = new Date()
