@@ -33,7 +33,8 @@ use OCP\Security\ICrypto;
 
 class ConfigController extends Controller {
 
-	private const MATRIX_OAUTH_SCOPE = 'urn:matrix:org.matrix.msc2967.client:api:*';
+	private const MATRIX_OAUTH_API_SCOPE = 'urn:matrix:client:api:*';
+	private const MATRIX_OAUTH_DEVICE_SCOPE_PREFIX = 'urn:matrix:client:device:';
 	private const MATRIX_OAUTH_GRANT_TYPES = ['authorization_code', 'refresh_token'];
 	private const MATRIX_OAUTH_RESPONSE_TYPES = ['code'];
 
@@ -132,6 +133,11 @@ class ConfigController extends Controller {
 		$redirectUri = $this->urlGenerator->getAbsoluteURL(
 			$this->urlGenerator->linkToRoute('integration_matrix.config.oauthRedirect')
 		);
+		$deviceId = $this->config->getUserValue($this->userId, Application::APP_ID, 'oauth_device_id');
+		if ($deviceId === '') {
+			$deviceId = $this->generateOauthDeviceId();
+			$this->config->setUserValue($this->userId, Application::APP_ID, 'oauth_device_id', $deviceId);
+		}
 		$oauthState = bin2hex(random_bytes(16));
 		$codeVerifier = rtrim(strtr(base64_encode(random_bytes(64)), '+/', '-_'), '=');
 		$codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
@@ -145,7 +151,7 @@ class ConfigController extends Controller {
 			'client_id' => $clientId,
 			'redirect_uri' => $redirectUri,
 			'response_type' => 'code',
-			'scope' => self::MATRIX_OAUTH_SCOPE,
+			'scope' => self::MATRIX_OAUTH_API_SCOPE . ' ' . self::MATRIX_OAUTH_DEVICE_SCOPE_PREFIX . $deviceId,
 			'state' => $oauthState,
 			'code_challenge' => $codeChallenge,
 			'code_challenge_method' => 'S256',
@@ -487,6 +493,17 @@ class ConfigController extends Controller {
 
 	private function isUserAllowedToUseAdminOauth(string $userMatrixUrl, string $adminOauthUrl): bool {
 		return $userMatrixUrl === '' || $this->matrixAPIService->sameMatrixServer($userMatrixUrl, $adminOauthUrl);
+	}
+
+	private function generateOauthDeviceId(): string {
+		$alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~';
+		$alphabetLength = strlen($alphabet);
+		$deviceId = '';
+		for ($i = 0; $i < 10; $i++) {
+			$deviceId .= $alphabet[random_int(0, $alphabetLength - 1)];
+		}
+
+		return $deviceId;
 	}
 
 	/**
