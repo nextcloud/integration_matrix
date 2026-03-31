@@ -14,8 +14,15 @@ import moment from '@nextcloud/moment'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
-import { SEND_TYPE } from './utils.js'
+import { gotoSettingsConfirmDialog, oauthConnect, oauthConnectConfirmDialog, SEND_TYPE } from './utils.js'
 import { registerFileAction, Permission } from '@nextcloud/files'
+import {
+	defaultRootPath,
+	getClient,
+	getDefaultPropfind,
+	resultToNode,
+} from '@nextcloud/files/dav'
+import { subscribe } from '@nextcloud/event-bus'
 import MatrixIcon from '../img/app.svg'
 
 import { createApp } from 'vue'
@@ -31,6 +38,11 @@ if (!OCA.Matrix) {
 		filesToSend: [],
 		currentFileList: null,
 	}
+}
+
+subscribe('files:list:updated', onFilesListUpdated)
+function onFilesListUpdated({ view, folder, contents }) {
+	OCA.Matrix.currentFileList = { view, folder, contents }
 }
 
 function openRoomSelector(files) {
@@ -76,12 +88,77 @@ function sendSelectedNodes(nodes) {
 	})
 	if (OCA.Matrix.matrixConnected) {
 		openRoomSelector(formattedNodes)
+	} else if (OCA.Matrix.oauthPossible) {
+		connectToMatrix(formattedNodes)
 	} else {
-		showError(t('integration_matrix', 'You need to connect to Matrix first in your personal settings'))
+		gotoSettingsConfirmDialog()
 	}
 }
 
-// ///////////////// Network
+function checkIfFilesToSend() {
+	const urlCheckConnection = generateUrl('/apps/integration_matrix/files-to-send')
+	axios.get(urlCheckConnection)
+		.then((response) => {
+			const fileIdsStr = response?.data?.file_ids_to_send_after_oauth
+			const currentDir = response?.data?.current_dir_after_oauth
+			if (fileIdsStr && currentDir) {
+				sendFileIdsAfterOAuth(fileIdsStr, currentDir)
+			} else if (DEBUG) {
+				console.debug('[Matrix] nothing to send')
+			}
+		})
+		.catch((error) => {
+			console.error(error)
+		})
+}
+
+async function sendFileIdsAfterOAuth(fileIdsStr, currentDir) {
+	if (!fileIdsStr) {
+		return
+	}
+
+	const client = getClient()
+	const results = await client.getDirectoryContents(`${defaultRootPath}${currentDir}`, {
+		details: true,
+		data: getDefaultPropfind(),
+	})
+	const nodes = results.data.map((r) => resultToNode(r))
+	const fileIds = fileIdsStr.split(',')
+	const files = fileIds.map((fid) => {
+		const file = nodes.find((node) => node.fileid === parseInt(fid))
+		if (!file) {
+			return null
+		}
+		return {
+			id: file.fileid,
+			name: file.basename,
+			type: file.type,
+			size: file.size,
+		}
+	}).filter((file) => file !== null)
+
+	if (files.length > 0) {
+		openRoomSelector(files)
+	}
+}
+
+function connectToMatrix(selectedFiles = []) {
+	oauthConnectConfirmDialog(OCA.Matrix.oauthInstanceUrl || OCA.Matrix.matrixUrl).then(() => {
+		const selectedFilesIds = selectedFiles.map((file) => file.id)
+		const currentDirectory = OCA.Matrix.currentFileList?.folder?.attributes?.filename ?? '/'
+		const oauthOrigin = 'files--' + currentDirectory + '--' + selectedFilesIds.join(',')
+		oauthConnect(oauthOrigin, OCA.Matrix.usePopup).then(() => {
+			if (OCA.Matrix.usePopup) {
+				OCA.Matrix.matrixConnected = true
+				openRoomSelector(selectedFiles)
+			}
+		}).catch((error) => {
+			console.debug('OAuth error', error)
+		})
+	}).catch((error) => {
+		console.debug('OAuth error', error)
+	})
+}
 
 function sendPublicLinks(roomId, roomName, comment, permission, expirationDate, password) {
 	const req = {
@@ -94,7 +171,7 @@ function sendPublicLinks(roomId, roomName, comment, permission, expirationDate, 
 		password,
 	}
 	const url = generateUrl('apps/integration_matrix/sendPublicLinks')
-	axios.post(url, req).then((response) => {
+	axios.post(url, req).then(() => {
 		const number = OCA.Matrix.filesToSend.length
 		showSuccess(
 			n(
@@ -122,10 +199,10 @@ function sendPublicLinks(roomId, roomName, comment, permission, expirationDate, 
 }
 
 function sendInternalLinks(roomId, roomName, comment) {
-	sendMessage(roomId, comment).then((response) => {
-		OCA.Matrix.filesToSend.forEach(f => {
-			const link = window.location.protocol + '//' + window.location.host + generateUrl('/f/' + f.id)
-			const message = f.name + ': ' + link
+	sendMessage(roomId, comment).then(() => {
+		OCA.Matrix.filesToSend.forEach((file) => {
+			const link = window.location.protocol + '//' + window.location.host + generateUrl('/f/' + file.id)
+			const message = file.name + ': ' + link
 			sendMessage(roomId, message)
 		})
 		const number = OCA.Matrix.filesToSend.length
@@ -194,7 +271,7 @@ function sendFileLoop(roomId, roomName, comment) {
 function sendMessageAfterFilesUpload(roomId, roomName, comment) {
 	const count = OCA.Matrix.sentFileNames.length
 	const lastFileName = count === 0 ? t('integration_matrix', 'Nothing') : OCA.Matrix.sentFileNames[count - 1]
-	sendMessage(roomId, comment, OCA.Matrix.remoteFileIds).then((response) => {
+	sendMessage(roomId, comment, OCA.Matrix.remoteFileIds).then(() => {
 		showSuccess(
 			n(
 				'integration_matrix',
@@ -229,12 +306,9 @@ function sendMessage(roomId, message, remoteFileIds = undefined) {
 		roomId,
 		remoteFileIds,
 	}
-	console.debug('aaaaaaaaaaaaaaa sendMessage', req)
 	const url = generateUrl('apps/integration_matrix/sendMessage')
 	return axios.post(url, req)
 }
-
-// ////////////// Main
 
 const modalId = 'matrixSendModal'
 const modalElement = document.createElement('div')
@@ -264,12 +338,18 @@ modalElement.addEventListener('validate', (data) => {
 	}
 })
 
-// get Matrix state
 const urlCheckConnection = generateUrl('/apps/integration_matrix/is-connected')
 axios.get(urlCheckConnection).then((response) => {
 	OCA.Matrix.matrixConnected = response.data.connected
+	OCA.Matrix.oauthPossible = response.data.oauth_possible
+	OCA.Matrix.usePopup = response.data.use_popup
 	OCA.Matrix.matrixUrl = response.data.url
+	OCA.Matrix.oauthInstanceUrl = response.data.oauth_instance_url
 	if (DEBUG) console.debug('[Matrix] OCA.Matrix', OCA.Matrix)
 }).catch((error) => {
 	console.error(error)
+})
+
+document.addEventListener('DOMContentLoaded', () => {
+	checkIfFilesToSend()
 })

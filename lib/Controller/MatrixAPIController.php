@@ -61,14 +61,16 @@ class MatrixAPIController extends Controller {
 	}
 
 	/**
-	 * @param string $message
-	 * @param string $roomId
-	 * @param array|null $remoteFileIds
 	 * @return DataResponse
 	 * @throws Exception
 	 */
 	#[NoAdminRequired]
-	public function sendMessage(string $message, string $roomId, ?array $remoteFileIds = null) {
+	public function sendMessage(): DataResponse {
+		$message = $this->request->getParam('message');
+		$roomId = $this->request->getParam('roomId');
+		if (!is_string($message) || !is_string($roomId) || $message === '' || $roomId === '') {
+			return new DataResponse(['error' => 'Missing message or room ID'], Http::STATUS_BAD_REQUEST);
+		}
 		$result = $this->matrixAPIService->sendMessage($this->userId, $roomId, $message);
 		if (isset($result['error'])) {
 			return new DataResponse($result['error'], Http::STATUS_BAD_REQUEST);
@@ -77,16 +79,19 @@ class MatrixAPIController extends Controller {
 	}
 
 	/**
-	 * @param int $fileId
-	 * @param string $roomId
 	 * @return DataResponse
 	 * @throws NotPermittedException
 	 * @throws LockedException
 	 * @throws NoUserException
 	 */
 	#[NoAdminRequired]
-	public function sendFile(int $fileId, string $roomId) {
-		$result = $this->matrixAPIService->sendFile($this->userId, $fileId, $roomId);
+	public function sendFile(): DataResponse {
+		$fileId = $this->request->getParam('fileId');
+		$roomId = $this->request->getParam('roomId');
+		if (!is_numeric($fileId) || !is_string($roomId) || $roomId === '') {
+			return new DataResponse(['error' => 'Missing file ID or room ID'], Http::STATUS_BAD_REQUEST);
+		}
+		$result = $this->matrixAPIService->sendFile($this->userId, (int)$fileId, $roomId);
 		if (isset($result['error'])) {
 			return new DataResponse($result['error'], Http::STATUS_BAD_REQUEST);
 		}
@@ -94,30 +99,28 @@ class MatrixAPIController extends Controller {
 	}
 
 	/**
-	 * @param array $fileIds
-	 * @param string $roomId
-	 * @param string $roomName
-	 * @param string $comment
-	 * @param string $permission
-	 * @param string|null $expirationDate
-	 * @param string|null $password
 	 * @return DataResponse
 	 * @throws NoUserException
 	 * @throws NotPermittedException
 	 */
 	#[NoAdminRequired]
-	public function sendPublicLinks(
-		array $fileIds,
-		string $roomId,
-		string $roomName,
-		string $comment,
-		string $permission,
-		?string $expirationDate = null,
-		?string $password = null,
-	): DataResponse {
+	public function sendPublicLinks(): DataResponse {
+		$fileIds = $this->request->getParam('fileIds', []);
+		$roomId = $this->request->getParam('roomId');
+		$roomName = $this->request->getParam('roomName');
+		$comment = $this->request->getParam('comment', '');
+		$permission = $this->request->getParam('permission');
+		$expirationDate = $this->request->getParam('expirationDate');
+		$password = $this->request->getParam('password');
+		if (!is_array($fileIds) || !is_string($roomId) || !is_string($roomName) || !is_string($comment) || !is_string($permission)) {
+			return new DataResponse(['error' => 'Invalid request payload'], Http::STATUS_BAD_REQUEST);
+		}
+		$fileIds = array_map('intval', $fileIds);
 		$result = $this->matrixAPIService->sendPublicLinks(
 			$this->userId, $fileIds, $roomId, $roomName,
-			$comment, $permission, $expirationDate, $password
+			$comment, $permission,
+			is_string($expirationDate) ? $expirationDate : null,
+			is_string($password) ? $password : null
 		);
 		if (isset($result['error'])) {
 			return new DataResponse($result['error'], Http::STATUS_BAD_REQUEST);

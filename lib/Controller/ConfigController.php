@@ -15,23 +15,32 @@ namespace OCA\Matrix\Controller;
 use OCA\Matrix\AppInfo\Application;
 use OCA\Matrix\Service\MatrixAPIService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PasswordConfirmationRequired;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\RedirectResponse;
+use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\PreConditionNotMetException;
 use OCP\Security\ICrypto;
 
 class ConfigController extends Controller {
+
+	private const MATRIX_OAUTH_SCOPE = 'urn:matrix:org.matrix.msc2967.client:api:*';
 
 	public function __construct(
 		string $appName,
 		IRequest $request,
 		private IConfig $config,
 		private IAppConfig $appConfig,
+		private IURLGenerator $urlGenerator,
 		private IL10N $l,
 		private IInitialState $initialStateService,
 		private ICrypto $crypto,
@@ -46,41 +55,132 @@ class ConfigController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function isUserConnected(): DataResponse {
-		$matrixUrl = $this->config->getUserValue($this->userId, Application::APP_ID, 'url');
+		$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
+		$matrixUrl = $this->config->getUserValue($this->userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
 		$token = $this->config->getUserValue($this->userId, Application::APP_ID, 'token');
+		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
+		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true) === '1';
 
 		return new DataResponse([
-			'connected' => $matrixUrl && $token,
+			'connected' => $matrixUrl !== '' && $token !== '',
+			'oauth_possible' => $adminOauthUrl !== '' && $clientId !== '',
+			'use_popup' => $usePopup,
 			'url' => $matrixUrl,
+			'oauth_instance_url' => $adminOauthUrl,
+		]);
+	}
+
+	/**
+	 * @return DataResponse
+	 */
+	#[NoAdminRequired]
+	public function getFilesToSend(): DataResponse {
+		$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
+		$matrixUrl = $this->config->getUserValue($this->userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
+		$token = $this->config->getUserValue($this->userId, Application::APP_ID, 'token');
+
+		if ($matrixUrl !== '' && $token !== '') {
+			$fileIdsToSendAfterOAuth = $this->config->getUserValue($this->userId, Application::APP_ID, 'file_ids_to_send_after_oauth');
+			$currentDirAfterOAuth = $this->config->getUserValue($this->userId, Application::APP_ID, 'current_dir_after_oauth');
+			$this->config->deleteUserValue($this->userId, Application::APP_ID, 'file_ids_to_send_after_oauth');
+			$this->config->deleteUserValue($this->userId, Application::APP_ID, 'current_dir_after_oauth');
+
+			return new DataResponse([
+				'file_ids_to_send_after_oauth' => $fileIdsToSendAfterOAuth,
+				'current_dir_after_oauth' => $currentDirAfterOAuth,
+			]);
+		}
+
+		return new DataResponse(['message' => 'Not connected']);
+	}
+
+	/**
+	 * @return DataResponse
+	 */
+	#[NoAdminRequired]
+	public function startOauth(): DataResponse {
+		$oauthOrigin = $this->request->getParam('oauthOrigin', 'settings');
+		$matrixUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
+		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
+
+		if ($matrixUrl === '' || $clientId === '') {
+			return new DataResponse(['error' => $this->l->t('OAuth is not configured')], Http::STATUS_BAD_REQUEST);
+		}
+
+		$authMetadata = $this->matrixAPIService->getAuthMetadata($matrixUrl);
+		if (isset($authMetadata['error'])) {
+			return new DataResponse($authMetadata, Http::STATUS_BAD_REQUEST);
+		}
+
+		$authorizationEndpoint = $authMetadata['authorization_endpoint'] ?? '';
+		if ($authorizationEndpoint === '') {
+			return new DataResponse(['error' => $this->l->t('The Matrix homeserver did not provide an OAuth authorization endpoint')], Http::STATUS_BAD_REQUEST);
+		}
+
+		$redirectUri = $this->urlGenerator->getAbsoluteURL(
+			$this->urlGenerator->linkToRoute('integration_matrix.config.oauthRedirect')
+		);
+		$oauthState = bin2hex(random_bytes(16));
+		$codeVerifier = rtrim(strtr(base64_encode(random_bytes(64)), '+/', '-_'), '=');
+		$codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
+
+		$this->config->setUserValue($this->userId, Application::APP_ID, 'url', $matrixUrl);
+		$this->config->setUserValue($this->userId, Application::APP_ID, 'oauth_state', $oauthState);
+		$this->config->setUserValue($this->userId, Application::APP_ID, 'oauth_code_verifier', $codeVerifier);
+		$this->config->setUserValue($this->userId, Application::APP_ID, 'redirect_uri', $redirectUri);
+		$this->config->setUserValue($this->userId, Application::APP_ID, 'oauth_origin', is_string($oauthOrigin) ? $oauthOrigin : 'settings');
+
+		$authorizationUrl = $authorizationEndpoint . '?' . http_build_query([
+			'client_id' => $clientId,
+			'redirect_uri' => $redirectUri,
+			'response_type' => 'code',
+			'scope' => self::MATRIX_OAUTH_SCOPE,
+			'state' => $oauthState,
+			'code_challenge' => $codeChallenge,
+			'code_challenge_method' => 'S256',
+		]);
+
+		return new DataResponse([
+			'authorization_url' => $authorizationUrl,
 		]);
 	}
 
 	/**
 	 * Set config values
 	 *
-	 * @param array $values
 	 * @return DataResponse
 	 * @throws PreConditionNotMetException
 	 */
 	#[NoAdminRequired]
-	public function setConfig(array $values): DataResponse {
+	public function setConfig(): DataResponse {
+		$values = $this->request->getParam('values', []);
+		if (!is_array($values)) {
+			return new DataResponse([], Http::STATUS_BAD_REQUEST);
+		}
+
 		foreach ($values as $key => $value) {
+			if (!is_string($key) || !is_string($value)) {
+				continue;
+			}
 			if ($key === 'token' && $value !== '') {
-				$encryptedValue = $this->crypto->encrypt($value);
-				$this->config->setUserValue($this->userId, Application::APP_ID, $key, $encryptedValue);
+				$this->config->setUserValue($this->userId, Application::APP_ID, $key, $this->crypto->encrypt($value));
 			} elseif ($key === 'token' && $value === '') {
-				$this->config->deleteUserValue($this->userId, Application::APP_ID, 'token');
-				$this->config->deleteUserValue($this->userId, Application::APP_ID, 'user_id');
-				$this->config->deleteUserValue($this->userId, Application::APP_ID, 'user_name');
-				$this->config->deleteUserValue($this->userId, Application::APP_ID, 'user_displayname');
+				foreach (['token', 'user_id', 'user_name', 'user_displayname', 'refresh_token', 'token_expires_at'] as $configKey) {
+					$this->config->deleteUserValue($this->userId, Application::APP_ID, $configKey);
+				}
 			} else {
 				$this->config->setUserValue($this->userId, Application::APP_ID, $key, $value);
 			}
 		}
 
 		$result = [];
-		if (isset($values['token']) && $values['token'] !== '') {
+		if (isset($values['token']) && is_string($values['token']) && $values['token'] !== '') {
+			$this->config->deleteUserValue($this->userId, Application::APP_ID, 'refresh_token');
+			$this->config->deleteUserValue($this->userId, Application::APP_ID, 'token_expires_at');
 			$result = $this->storeUserInfo();
+			if (($result['user_name'] ?? '') === '') {
+				$this->config->deleteUserValue($this->userId, Application::APP_ID, 'token');
+			}
 		}
 		return new DataResponse($result);
 	}
@@ -88,14 +188,197 @@ class ConfigController extends Controller {
 	/**
 	 * Set admin config values
 	 *
-	 * @param array $values
 	 * @return DataResponse
 	 */
-	public function setAdminConfig(array $values): DataResponse {
+	public function setAdminConfig(): DataResponse {
+		$values = $this->request->getParam('values', []);
+		if (!is_array($values)) {
+			return new DataResponse([], Http::STATUS_BAD_REQUEST);
+		}
+
 		foreach ($values as $key => $value) {
+			if (!is_string($key) || !is_string($value) || $key === 'client_secret') {
+				continue;
+			}
 			$this->appConfig->setAppValueString($key, $value, lazy: true);
 		}
+
 		return new DataResponse([]);
+	}
+
+	/**
+	 * Set sensitive admin config values
+	 *
+	 * @return DataResponse
+	 */
+	#[PasswordConfirmationRequired]
+	public function setSensitiveAdminConfig(): DataResponse {
+		$values = $this->request->getParam('values', []);
+		if (!is_array($values)) {
+			return new DataResponse([], Http::STATUS_BAD_REQUEST);
+		}
+
+		foreach ($values as $key => $value) {
+			if (!is_string($key) || !is_string($value)) {
+				continue;
+			}
+			if ($key === 'client_secret') {
+				$this->appConfig->setAppValueString($key, $value, lazy: true, sensitive: $value !== '');
+			}
+		}
+
+		return new DataResponse([]);
+	}
+
+	/**
+	 * @param string $user_name
+	 * @param string $user_displayname
+	 * @return TemplateResponse
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function popupSuccessPage(string $user_name, string $user_displayname): TemplateResponse {
+		$this->initialStateService->provideInitialState('popup-data', ['user_name' => $user_name, 'user_displayname' => $user_displayname]);
+		return new TemplateResponse(Application::APP_ID, 'popupSuccess', [], TemplateResponse::RENDER_AS_GUEST);
+	}
+
+	/**
+	 * Receive the Matrix OAuth authorization code and exchange it for an access token.
+	 *
+	 * @param string $code
+	 * @param string $state
+	 * @param string $error
+	 * @param string $error_description
+	 * @return RedirectResponse
+	 * @throws PreConditionNotMetException
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function oauthRedirect(
+		string $code = '',
+		string $state = '',
+		string $error = '',
+		string $error_description = '',
+	): RedirectResponse {
+		$storedState = $this->config->getUserValue($this->userId, Application::APP_ID, 'oauth_state');
+		$storedVerifier = $this->config->getUserValue($this->userId, Application::APP_ID, 'oauth_code_verifier');
+		$oauthOrigin = $this->config->getUserValue($this->userId, Application::APP_ID, 'oauth_origin');
+		$redirectUri = $this->config->getUserValue($this->userId, Application::APP_ID, 'redirect_uri');
+		$matrixUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
+		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
+		$clientSecret = $this->appConfig->getAppValueString('client_secret', lazy: true);
+		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true) === '1';
+
+		foreach (['oauth_state', 'oauth_code_verifier'] as $configKey) {
+			$this->config->deleteUserValue($this->userId, Application::APP_ID, $configKey);
+		}
+
+		if ($error !== '') {
+			$message = $error_description !== '' ? $error_description : $error;
+			return $this->redirectToSettingsError($message);
+		}
+
+		if ($matrixUrl === '' || $clientId === '' || $storedState === '' || $storedState !== $state || $storedVerifier === '' || $code === '') {
+			return $this->redirectToSettingsError($this->l->t('Error during OAuth exchanges'));
+		}
+
+		$authMetadata = $this->matrixAPIService->getAuthMetadata($matrixUrl);
+		if (isset($authMetadata['error'])) {
+			return $this->redirectToSettingsError($authMetadata['error']);
+		}
+
+		$tokenResponse = $this->matrixAPIService->requestOAuthAccessToken($authMetadata, [
+			'grant_type' => 'authorization_code',
+			'client_id' => $clientId,
+			'code' => $code,
+			'redirect_uri' => $redirectUri,
+			'code_verifier' => $storedVerifier,
+		], $clientSecret !== '' ? $clientSecret : null);
+
+		if (!isset($tokenResponse['access_token'])) {
+			$message = $tokenResponse['error_description'] ?? $tokenResponse['error'] ?? $this->l->t('Error getting OAuth access token.');
+			return $this->redirectToSettingsError($message);
+		}
+
+		$this->config->setUserValue(
+			$this->userId,
+			Application::APP_ID,
+			'token',
+			$this->crypto->encrypt($tokenResponse['access_token'])
+		);
+		$this->config->setUserValue($this->userId, Application::APP_ID, 'url', $matrixUrl);
+
+		$refreshToken = $tokenResponse['refresh_token'] ?? '';
+		if ($refreshToken !== '') {
+			$this->config->setUserValue(
+				$this->userId,
+				Application::APP_ID,
+				'refresh_token',
+				$this->crypto->encrypt($refreshToken)
+			);
+		} else {
+			$this->config->deleteUserValue($this->userId, Application::APP_ID, 'refresh_token');
+		}
+
+		if (isset($tokenResponse['expires_in'])) {
+			$this->config->setUserValue(
+				$this->userId,
+				Application::APP_ID,
+				'token_expires_at',
+				strval(time() + (int)$tokenResponse['expires_in'])
+			);
+		} else {
+			$this->config->deleteUserValue($this->userId, Application::APP_ID, 'token_expires_at');
+		}
+
+		$userInfo = $this->storeUserInfo();
+		if (($userInfo['user_name'] ?? '') === '') {
+			foreach (['token', 'refresh_token', 'token_expires_at'] as $configKey) {
+				$this->config->deleteUserValue($this->userId, Application::APP_ID, $configKey);
+			}
+			return $this->redirectToSettingsError($this->l->t('The OAuth access token could not be used with the Matrix client-server API'));
+		}
+		$this->config->deleteUserValue($this->userId, Application::APP_ID, 'oauth_origin');
+
+		if ($usePopup) {
+			return new RedirectResponse($this->urlGenerator->linkToRoute('integration_matrix.config.popupSuccessPage', [
+				'user_name' => $userInfo['user_name'] ?? '',
+				'user_displayname' => $userInfo['user_displayname'] ?? '',
+			]));
+		}
+
+		if ($oauthOrigin === 'settings' || $oauthOrigin === '') {
+			return new RedirectResponse(
+				$this->urlGenerator->linkToRoute('settings.PersonalSettings.index', ['section' => 'connected-accounts']) . '?matrixToken=success'
+			);
+		}
+
+		if (preg_match('/^files--.*/', $oauthOrigin) === 1) {
+			$parts = explode('--', $oauthOrigin);
+			if (count($parts) > 1) {
+				$path = $parts[1];
+				if (count($parts) > 2) {
+					$this->config->setUserValue($this->userId, Application::APP_ID, 'file_ids_to_send_after_oauth', $parts[2]);
+					$this->config->setUserValue($this->userId, Application::APP_ID, 'current_dir_after_oauth', $path);
+				}
+				return new RedirectResponse($this->urlGenerator->linkToRoute('files.view.index', ['dir' => $path]));
+			}
+		}
+
+		return new RedirectResponse(
+			$this->urlGenerator->linkToRoute('settings.PersonalSettings.index', ['section' => 'connected-accounts']) . '?matrixToken=success'
+		);
+	}
+
+	/**
+	 * @param string $message
+	 * @return RedirectResponse
+	 */
+	private function redirectToSettingsError(string $message): RedirectResponse {
+		return new RedirectResponse(
+			$this->urlGenerator->linkToRoute('settings.PersonalSettings.index', ['section' => 'connected-accounts'])
+			. '?matrixToken=error&message=' . urlencode($message)
+		);
 	}
 
 	/**
@@ -116,14 +399,15 @@ class ConfigController extends Controller {
 				'user_name' => $userName ?? '',
 				'user_displayname' => $info['displayname'] ?? $userName,
 			];
-		} else {
-			$this->config->setUserValue($this->userId, Application::APP_ID, 'user_id', '');
-			$this->config->setUserValue($this->userId, Application::APP_ID, 'user_name', '');
-			return [
-				'user_id' => '',
-				'user_name' => '',
-				'user_displayname' => '',
-			];
 		}
+
+		$this->config->setUserValue($this->userId, Application::APP_ID, 'user_id', '');
+		$this->config->setUserValue($this->userId, Application::APP_ID, 'user_name', '');
+		$this->config->setUserValue($this->userId, Application::APP_ID, 'user_displayname', '');
+		return [
+			'user_id' => '',
+			'user_name' => '',
+			'user_displayname' => '',
+		];
 	}
 }

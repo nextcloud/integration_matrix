@@ -60,7 +60,8 @@ class MatrixAPIService {
 	 * @return string
 	 */
 	public function getMatrixUrl(string $userId): string {
-		return $this->config->getUserValue($userId, Application::APP_ID, 'url') ?: '';
+		$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
+		return $this->config->getUserValue($userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
 	}
 
 	/**
@@ -319,6 +320,7 @@ class MatrixAPIService {
 	 * @return array
 	 */
 	private function uploadFile(string $userId, File $file): array {
+		$this->checkTokenExpiration($userId);
 		$matrixUrl = $this->getMatrixUrl($userId);
 		$accessToken = $this->config->getUserValue($userId, Application::APP_ID, 'token');
 		$accessToken = $accessToken === '' ? '' : $this->crypto->decrypt($accessToken);
@@ -365,7 +367,136 @@ class MatrixAPIService {
 		bool $jsonResponse = true,
 	) {
 		$matrixUrl = $this->getMatrixUrl($userId);
+		$this->checkTokenExpiration($userId);
 		return $this->networkService->request($userId, $matrixUrl, $endPoint, $params, $method, $jsonResponse);
+	}
+
+	/**
+	 * @param string $matrixUrl
+	 * @return array
+	 */
+	public function getAuthMetadata(string $matrixUrl): array {
+		try {
+			$response = $this->client->get($matrixUrl . '/_matrix/client/v1/auth_metadata', [
+				'headers' => [
+					'User-Agent' => Application::INTEGRATION_USER_AGENT,
+				],
+			]);
+			return json_decode($response->getBody(), true) ?? [];
+		} catch (ServerException|ClientException $e) {
+			$this->logger->error('Matrix OAuth metadata error: ' . $e->getMessage(), ['app' => Application::APP_ID]);
+			$body = $e->getResponse()?->getBody();
+			$decodedBody = $body !== null ? json_decode((string)$body, true) : null;
+			return is_array($decodedBody) ? $decodedBody : ['error' => $e->getMessage()];
+		} catch (Exception $e) {
+			$this->logger->error('Matrix OAuth metadata error: ' . $e->getMessage(), ['app' => Application::APP_ID]);
+			return ['error' => $e->getMessage()];
+		}
+	}
+
+	/**
+	 * @param array $authMetadata
+	 * @param array $params
+	 * @param string|null $clientSecret
+	 * @return array
+	 */
+	public function requestOAuthAccessToken(array $authMetadata, array $params, ?string $clientSecret = null): array {
+		$tokenEndpoint = $authMetadata['token_endpoint'] ?? '';
+		if ($tokenEndpoint === '') {
+			return ['error' => $this->l10n->t('The Matrix homeserver did not provide an OAuth token endpoint')];
+		}
+
+		$options = [
+			'headers' => [
+				'User-Agent' => Application::INTEGRATION_USER_AGENT,
+				'Content-Type' => 'application/x-www-form-urlencoded',
+			],
+		];
+
+		$supportedAuthMethods = $authMetadata['token_endpoint_auth_methods_supported'] ?? [];
+		$useClientSecretBasic = false;
+		if ($clientSecret !== null && $clientSecret !== '') {
+			if (in_array('client_secret_post', $supportedAuthMethods, true) || $supportedAuthMethods === []) {
+				$params['client_secret'] = $clientSecret;
+			} elseif (in_array('client_secret_basic', $supportedAuthMethods, true) && isset($params['client_id'])) {
+				$useClientSecretBasic = true;
+				$options['headers']['Authorization'] = 'Basic ' . base64_encode($params['client_id'] . ':' . $clientSecret);
+				unset($params['client_id']);
+			}
+		}
+
+		$options['body'] = http_build_query($params);
+
+		try {
+			$response = $this->client->post($tokenEndpoint, $options);
+			return json_decode($response->getBody(), true) ?? [];
+		} catch (ServerException|ClientException $e) {
+			$body = $e->getResponse()?->getBody();
+			$decodedBody = $body !== null ? json_decode((string)$body, true) : null;
+			$this->logger->error('Matrix OAuth token error: ' . ($body !== null ? (string)$body : $e->getMessage()), ['app' => Application::APP_ID]);
+			if (is_array($decodedBody)) {
+				return $decodedBody;
+			}
+			return ['error' => $useClientSecretBasic ? $this->l10n->t('OAuth access token refused') : $e->getMessage()];
+		} catch (Exception $e) {
+			$this->logger->error('Matrix OAuth token error: ' . $e->getMessage(), ['app' => Application::APP_ID]);
+			return ['error' => $e->getMessage()];
+		}
+	}
+
+	/**
+	 * @param string $userId
+	 * @return void
+	 * @throws PreConditionNotMetException
+	 */
+	private function checkTokenExpiration(string $userId): void {
+		$refreshToken = $this->config->getUserValue($userId, Application::APP_ID, 'refresh_token');
+		$expireAt = $this->config->getUserValue($userId, Application::APP_ID, 'token_expires_at');
+		if ($refreshToken !== '' && $expireAt !== '' && time() > ((int)$expireAt - 60)) {
+			$this->refreshToken($userId);
+		}
+	}
+
+	/**
+	 * @param string $userId
+	 * @return bool
+	 * @throws PreConditionNotMetException
+	 */
+	private function refreshToken(string $userId): bool {
+		$matrixUrl = $this->getMatrixUrl($userId);
+		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
+		$clientSecret = $this->appConfig->getAppValueString('client_secret', lazy: true);
+		$refreshToken = $this->config->getUserValue($userId, Application::APP_ID, 'refresh_token');
+		$refreshToken = $refreshToken === '' ? '' : $this->crypto->decrypt($refreshToken);
+
+		if ($refreshToken === '' || $clientId === '') {
+			return false;
+		}
+
+		$authMetadata = $this->getAuthMetadata($matrixUrl);
+		if (isset($authMetadata['error'])) {
+			return false;
+		}
+
+		$result = $this->requestOAuthAccessToken($authMetadata, [
+			'grant_type' => 'refresh_token',
+			'client_id' => $clientId,
+			'refresh_token' => $refreshToken,
+		], $clientSecret !== '' ? $clientSecret : null);
+
+		if (!isset($result['access_token'])) {
+			$this->logger->error('Matrix access token refresh failed: ' . ($result['error_description'] ?? $result['error'] ?? 'unknown error'), ['app' => Application::APP_ID]);
+			return false;
+		}
+
+		$this->config->setUserValue($userId, Application::APP_ID, 'token', $this->crypto->encrypt($result['access_token']));
+		if (isset($result['refresh_token']) && $result['refresh_token'] !== '') {
+			$this->config->setUserValue($userId, Application::APP_ID, 'refresh_token', $this->crypto->encrypt($result['refresh_token']));
+		}
+		if (isset($result['expires_in'])) {
+			$this->config->setUserValue($userId, Application::APP_ID, 'token_expires_at', strval(time() + (int)$result['expires_in']));
+		}
+		return true;
 	}
 
 	/**
