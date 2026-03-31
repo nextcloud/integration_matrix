@@ -65,12 +65,7 @@ class MatrixAPIController extends Controller {
 	 * @throws Exception
 	 */
 	#[NoAdminRequired]
-	public function sendMessage(): DataResponse {
-		$message = $this->request->getParam('message');
-		$roomId = $this->request->getParam('roomId');
-		if (!is_string($message) || !is_string($roomId) || $message === '' || $roomId === '') {
-			return new DataResponse(['error' => 'Missing message or room ID'], Http::STATUS_BAD_REQUEST);
-		}
+	public function sendMessage(string $message, string $roomId): DataResponse {
 		$result = $this->matrixAPIService->sendMessage($this->userId, $roomId, $message);
 		if (isset($result['error'])) {
 			return new DataResponse($result['error'], Http::STATUS_BAD_REQUEST);
