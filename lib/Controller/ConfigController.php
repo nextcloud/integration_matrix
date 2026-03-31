@@ -515,14 +515,16 @@ class ConfigController extends Controller {
 		if (isset($info['user_id'])) {
 			$userId = $info['user_id'];
 			$userName = substr($userId, 1);
+			$profileInfo = $this->matrixAPIService->request($this->userId, 'profile/' . urlencode($userId));
+			$userDisplayName = $profileInfo['displayname'] ?? strtok($userName, ':');
 			$this->config->setUserValue($this->userId, Application::APP_ID, 'user_id', $userId ?? '');
 			$this->config->setUserValue($this->userId, Application::APP_ID, 'user_name', $userName ?? '');
-			$this->config->setUserValue($this->userId, Application::APP_ID, 'user_displayname', $info['displayname'] ?? $userName);
+			$this->config->setUserValue($this->userId, Application::APP_ID, 'user_displayname', $userDisplayName);
 
 			return [
 				'user_id' => $userId ?? '',
 				'user_name' => $userName ?? '',
-				'user_displayname' => $info['displayname'] ?? $userName,
+				'user_displayname' => $userDisplayName,
 			];
 		}
 
