@@ -445,6 +445,43 @@ class MatrixAPIService {
 	}
 
 	/**
+	 * @param array $authMetadata
+	 * @param array $params
+	 * @return array
+	 */
+	public function registerOAuthClient(array $authMetadata, array $params): array {
+		$registrationEndpoint = $authMetadata['registration_endpoint'] ?? '';
+		if ($registrationEndpoint === '') {
+			return ['error' => $this->l10n->t('The Matrix homeserver did not provide an OAuth client registration endpoint')];
+		}
+
+		$options = [
+			'headers' => [
+				'User-Agent' => Application::INTEGRATION_USER_AGENT,
+				'Content-Type' => 'application/json',
+				'Accept' => 'application/json',
+			],
+			'body' => json_encode($params),
+		];
+
+		try {
+			$response = $this->client->post($registrationEndpoint, $options);
+			return json_decode($response->getBody(), true) ?? [];
+		} catch (ServerException|ClientException $e) {
+			$body = $e->getResponse()?->getBody();
+			$decodedBody = $body !== null ? json_decode((string)$body, true) : null;
+			$this->logger->error('Matrix OAuth client registration error: ' . ($body !== null ? (string)$body : $e->getMessage()), ['app' => Application::APP_ID]);
+			if (is_array($decodedBody)) {
+				return $decodedBody;
+			}
+			return ['error' => $e->getMessage()];
+		} catch (Exception $e) {
+			$this->logger->error('Matrix OAuth client registration error: ' . $e->getMessage(), ['app' => Application::APP_ID]);
+			return ['error' => $e->getMessage()];
+		}
+	}
+
+	/**
 	 * @param string $userId
 	 * @return void
 	 * @throws PreConditionNotMetException

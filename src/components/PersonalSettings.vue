@@ -15,9 +15,12 @@
 				</NcButton>
 			</div>
 
-			<div v-if="state.oauth_possible" class="auth-block">
-				<NcNoteCard type="info">
+			<div v-if="state.oauth_configured" class="auth-block">
+				<NcNoteCard v-if="state.oauth_possible" type="info">
 					{{ t('integration_matrix', 'Connect to the administrator-provided Matrix homeserver with OAuth.') }}
+				</NcNoteCard>
+				<NcNoteCard v-else-if="state.oauth_blocked_by_user_url" type="warning">
+					{{ t('integration_matrix', 'OAuth is only available when your Matrix server address matches the administrator-provided homeserver or is left empty to inherit it.') }}
 				</NcNoteCard>
 				<NcTextField
 					:model-value="state.oauth_instance_url"
@@ -28,7 +31,7 @@
 					</template>
 				</NcTextField>
 				<NcButton
-					v-if="!connected"
+					v-if="!connected && state.oauth_possible"
 					type="primary"
 					:loading="oauthLoading"
 					@click="connectWithOauth">
@@ -46,7 +49,7 @@
 				<NcTextField
 					v-model="state.url"
 					:label="t('integration_matrix', 'Matrix server address')"
-					:placeholder="t('integration_matrix', 'https://matrix.example.com')"
+					:placeholder="state.oauth_instance_url || t('integration_matrix', 'https://matrix.example.com')"
 					:disabled="connected === true"
 					:show-trailing-button="!!state.url"
 					@trailing-button-click="state.url = ''; onInput()"
@@ -55,6 +58,9 @@
 						<EarthIcon :size="20" />
 					</template>
 				</NcTextField>
+				<NcNoteCard v-if="state.oauth_instance_url && !connected" type="info">
+					{{ t('integration_matrix', 'Leave this empty to use the administrator-provided homeserver: {matrixUrl}', { matrixUrl: state.oauth_instance_url }) }}
+				</NcNoteCard>
 				<NcTextField
 					v-model="accessToken"
 					:label="t('integration_matrix', 'Access token')"
@@ -75,7 +81,7 @@
 				<NcButton
 					v-if="!connected"
 					type="primary"
-					:disabled="!state.url || !accessToken || loading"
+					:disabled="!effectiveMatrixUrl || !accessToken || loading"
 					:loading="loading"
 					@click="connectWithToken">
 					{{ t('integration_matrix', 'Connect with access token') }}
@@ -162,8 +168,11 @@ export default {
 	},
 
 	computed: {
+		effectiveMatrixUrl() {
+			return this.state.url || this.state.oauth_instance_url
+		},
 		connected() {
-			return !!this.state.token && !!this.state.url && !!this.state.user_name
+			return !!this.state.token && !!this.effectiveMatrixUrl && !!this.state.user_name
 		},
 		connectedDisplayName() {
 			return this.state.user_displayname + ' (' + this.state.user_name + ')'
@@ -199,7 +208,7 @@ export default {
 			this.saveOptions({ navigation_enabled: newValue ? '1' : '0' }, false)
 		},
 		connectWithToken() {
-			if (!this.state.url || !this.accessToken) {
+			if (!this.effectiveMatrixUrl || !this.accessToken) {
 				return
 			}
 			this.loading = true
@@ -216,7 +225,6 @@ export default {
 					this.state.token = 'dummyTokenContent'
 					this.state.user_name = data.userName
 					this.state.user_displayname = data.userDisplayName
-					this.state.url = this.state.oauth_instance_url
 					showSuccess(t('integration_matrix', 'Successfully connected to Matrix!'))
 				}
 			}).catch((error) => {

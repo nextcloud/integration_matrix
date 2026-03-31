@@ -34,6 +34,8 @@ use OCP\Security\ICrypto;
 class ConfigController extends Controller {
 
 	private const MATRIX_OAUTH_SCOPE = 'urn:matrix:org.matrix.msc2967.client:api:*';
+	private const MATRIX_OAUTH_GRANT_TYPES = ['authorization_code', 'refresh_token'];
+	private const MATRIX_OAUTH_RESPONSE_TYPES = ['code'];
 
 	public function __construct(
 		string $appName,
@@ -56,14 +58,17 @@ class ConfigController extends Controller {
 	#[NoAdminRequired]
 	public function isUserConnected(): DataResponse {
 		$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
-		$matrixUrl = $this->config->getUserValue($this->userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
+		$userMatrixUrl = $this->config->getUserValue($this->userId, Application::APP_ID, 'url');
+		$matrixUrl = $userMatrixUrl !== '' ? $userMatrixUrl : $adminOauthUrl;
 		$token = $this->config->getUserValue($this->userId, Application::APP_ID, 'token');
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true) === '1';
+		$registeredClientUrl = $this->appConfig->getAppValueString('registered_client_url', lazy: true);
+		$oauthPossible = $this->isOAuthPossibleForUserUrl($userMatrixUrl, $adminOauthUrl, $clientId, $registeredClientUrl);
 
 		return new DataResponse([
 			'connected' => $matrixUrl !== '' && $token !== '',
-			'oauth_possible' => $adminOauthUrl !== '' && $clientId !== '',
+			'oauth_possible' => $oauthPossible,
 			'use_popup' => $usePopup,
 			'url' => $matrixUrl,
 			'oauth_instance_url' => $adminOauthUrl,
@@ -102,9 +107,16 @@ class ConfigController extends Controller {
 		$oauthOrigin = $this->request->getParam('oauthOrigin', 'settings');
 		$matrixUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
+		$registeredClientUrl = $this->appConfig->getAppValueString('registered_client_url', lazy: true);
+		$userMatrixUrl = $this->config->getUserValue($this->userId, Application::APP_ID, 'url');
 
-		if ($matrixUrl === '' || $clientId === '') {
+		if ($matrixUrl === '' || $clientId === '' || !$this->isAdminOauthClientCompatible($matrixUrl, $registeredClientUrl)) {
 			return new DataResponse(['error' => $this->l->t('OAuth is not configured')], Http::STATUS_BAD_REQUEST);
+		}
+		if (!$this->isUserAllowedToUseAdminOauth($userMatrixUrl, $matrixUrl)) {
+			return new DataResponse([
+				'error' => $this->l->t('OAuth is only available when your Matrix server address matches the administrator-provided homeserver or is left empty'),
+			], Http::STATUS_BAD_REQUEST);
 		}
 
 		$authMetadata = $this->matrixAPIService->getAuthMetadata($matrixUrl);
@@ -124,7 +136,6 @@ class ConfigController extends Controller {
 		$codeVerifier = rtrim(strtr(base64_encode(random_bytes(64)), '+/', '-_'), '=');
 		$codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
 
-		$this->config->setUserValue($this->userId, Application::APP_ID, 'url', $matrixUrl);
 		$this->config->setUserValue($this->userId, Application::APP_ID, 'oauth_state', $oauthState);
 		$this->config->setUserValue($this->userId, Application::APP_ID, 'oauth_code_verifier', $codeVerifier);
 		$this->config->setUserValue($this->userId, Application::APP_ID, 'redirect_uri', $redirectUri);
@@ -196,11 +207,20 @@ class ConfigController extends Controller {
 			return new DataResponse([], Http::STATUS_BAD_REQUEST);
 		}
 
+		$clientIdWasUpdated = isset($values['client_id']) && is_string($values['client_id']);
+
 		foreach ($values as $key => $value) {
 			if (!is_string($key) || !is_string($value) || $key === 'client_secret') {
 				continue;
 			}
+			if ($key === 'oauth_instance_url') {
+				$value = $this->normalizeHomeserverUrl($value);
+			}
 			$this->appConfig->setAppValueString($key, $value, lazy: true);
+		}
+
+		if ($clientIdWasUpdated) {
+			$this->appConfig->deleteAppValue('registered_client_url');
 		}
 
 		return new DataResponse([]);
@@ -218,6 +238,8 @@ class ConfigController extends Controller {
 			return new DataResponse([], Http::STATUS_BAD_REQUEST);
 		}
 
+		$clientSecretWasUpdated = isset($values['client_secret']) && is_string($values['client_secret']);
+
 		foreach ($values as $key => $value) {
 			if (!is_string($key) || !is_string($value)) {
 				continue;
@@ -227,7 +249,69 @@ class ConfigController extends Controller {
 			}
 		}
 
+		if ($clientSecretWasUpdated) {
+			$this->appConfig->deleteAppValue('registered_client_url');
+		}
+
 		return new DataResponse([]);
+	}
+
+	/**
+	 * @return DataResponse
+	 */
+	#[PasswordConfirmationRequired]
+	public function registerAdminOauthClient(): DataResponse {
+		$matrixUrl = $this->normalizeHomeserverUrl($this->request->getParam('oauth_instance_url', ''));
+		if ($matrixUrl === '') {
+			return new DataResponse(['error' => $this->l->t('Please provide a Matrix OAuth homeserver URL first')], Http::STATUS_BAD_REQUEST);
+		}
+
+		$authMetadata = $this->matrixAPIService->getAuthMetadata($matrixUrl);
+		if (isset($authMetadata['error'])) {
+			return new DataResponse($authMetadata, Http::STATUS_BAD_REQUEST);
+		}
+
+		$registrationEndpoint = $authMetadata['registration_endpoint'] ?? '';
+		if ($registrationEndpoint === '') {
+			return new DataResponse(['error' => $this->l->t('The Matrix homeserver did not provide an OAuth client registration endpoint')], Http::STATUS_BAD_REQUEST);
+		}
+
+		$redirectUri = $this->urlGenerator->linkToRouteAbsolute('integration_matrix.config.oauthRedirect');
+		$clientUri = $this->urlGenerator->getAbsoluteURL('/');
+		$clientName = $this->l->t('Nextcloud Matrix integration');
+
+		$registrationResponse = $this->matrixAPIService->registerOAuthClient($authMetadata, [
+			'client_name' => $clientName,
+			'client_uri' => $clientUri,
+			'application_type' => 'web',
+			'grant_types' => self::MATRIX_OAUTH_GRANT_TYPES,
+			'response_types' => self::MATRIX_OAUTH_RESPONSE_TYPES,
+			'redirect_uris' => [$redirectUri],
+			'token_endpoint_auth_method' => 'none',
+		]);
+
+		$clientId = $registrationResponse['client_id'] ?? '';
+		if ($clientId === '') {
+			$message = $registrationResponse['error_description'] ?? $registrationResponse['error'] ?? $this->l->t('OAuth client registration failed');
+			return new DataResponse(['error' => $message], Http::STATUS_BAD_REQUEST);
+		}
+
+		$this->appConfig->setAppValueString('oauth_instance_url', $matrixUrl, lazy: true);
+		$this->appConfig->setAppValueString('client_id', $clientId, lazy: true);
+		$clientSecret = (string)($registrationResponse['client_secret'] ?? '');
+		if ($clientSecret !== '') {
+			$this->appConfig->setAppValueString('client_secret', $clientSecret, lazy: true, sensitive: true);
+		} else {
+			$this->appConfig->deleteAppValue('client_secret');
+		}
+		$this->appConfig->setAppValueString('registered_client_url', $matrixUrl, lazy: true);
+
+		return new DataResponse([
+			'client_id' => $clientId,
+			'client_secret' => $clientSecret !== '' ? 'dummySecret' : '',
+			'oauth_instance_url' => $matrixUrl,
+			'registered_client_url' => $matrixUrl,
+		]);
 	}
 
 	/**
@@ -306,7 +390,6 @@ class ConfigController extends Controller {
 			'token',
 			$this->crypto->encrypt($tokenResponse['access_token'])
 		);
-		$this->config->setUserValue($this->userId, Application::APP_ID, 'url', $matrixUrl);
 
 		$refreshToken = $tokenResponse['refresh_token'] ?? '';
 		if ($refreshToken !== '') {
@@ -379,6 +462,34 @@ class ConfigController extends Controller {
 			$this->urlGenerator->linkToRoute('settings.PersonalSettings.index', ['section' => 'connected-accounts'])
 			. '?matrixToken=error&message=' . urlencode($message)
 		);
+	}
+
+	private function normalizeHomeserverUrl(string $url): string {
+		$url = trim($url);
+		return $url === '' ? '' : rtrim($url, '/');
+	}
+
+	private function isOAuthPossibleForUserUrl(string $userMatrixUrl, string $adminOauthUrl, string $clientId, string $registeredClientUrl): bool {
+		if ($adminOauthUrl === '' || $clientId === '' || !$this->isAdminOauthClientCompatible($adminOauthUrl, $registeredClientUrl)) {
+			return false;
+		}
+
+		return $this->isUserAllowedToUseAdminOauth($userMatrixUrl, $adminOauthUrl);
+	}
+
+	private function isAdminOauthClientCompatible(string $adminOauthUrl, string $registeredClientUrl): bool {
+		$normalizedRegisteredClientUrl = $this->normalizeHomeserverUrl($registeredClientUrl);
+		if ($normalizedRegisteredClientUrl === '') {
+			return true;
+		}
+
+		return $normalizedRegisteredClientUrl === $this->normalizeHomeserverUrl($adminOauthUrl);
+	}
+
+	private function isUserAllowedToUseAdminOauth(string $userMatrixUrl, string $adminOauthUrl): bool {
+		$effectiveUserUrl = $this->normalizeHomeserverUrl($userMatrixUrl);
+		$effectiveAdminUrl = $this->normalizeHomeserverUrl($adminOauthUrl);
+		return $effectiveUserUrl === '' || $effectiveUserUrl === $effectiveAdminUrl;
 	}
 
 	/**

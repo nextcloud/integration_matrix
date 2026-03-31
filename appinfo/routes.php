@@ -19,6 +19,7 @@ return [
 		['name' => 'config#setConfig', 'url' => '/config', 'verb' => 'PUT'],
 		['name' => 'config#setAdminConfig', 'url' => '/admin-config', 'verb' => 'PUT'],
 		['name' => 'config#setSensitiveAdminConfig', 'url' => '/sensitive-admin-config', 'verb' => 'PUT'],
+		['name' => 'config#registerAdminOauthClient', 'url' => '/register-oauth-client', 'verb' => 'POST'],
 		['name' => 'config#popupSuccessPage', 'url' => '/popup-success', 'verb' => 'GET'],
 
 		['name' => 'matrixAPI#sendMessage', 'url' => '/sendMessage', 'verb' => 'POST'],
