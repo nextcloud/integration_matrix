@@ -104,8 +104,7 @@ class ConfigController extends Controller {
 	 * @return DataResponse
 	 */
 	#[NoAdminRequired]
-	public function startOauth(): DataResponse {
-		$oauthOrigin = $this->request->getParam('oauthOrigin', 'settings');
+	public function startOauth(string $oauthOrigin = 'settings'): DataResponse {
 		$matrixUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$registeredClientUrl = $this->appConfig->getAppValueString('registered_client_url', lazy: true);
@@ -169,12 +168,7 @@ class ConfigController extends Controller {
 	 * @throws PreConditionNotMetException
 	 */
 	#[NoAdminRequired]
-	public function setConfig(): DataResponse {
-		$values = $this->request->getParam('values', []);
-		if (!is_array($values)) {
-			return new DataResponse([], Http::STATUS_BAD_REQUEST);
-		}
-
+	public function setConfig(array $values): DataResponse {
 		foreach ($values as $key => $value) {
 			if (!is_string($key) || !is_string($value)) {
 				continue;
@@ -210,12 +204,7 @@ class ConfigController extends Controller {
 	 *
 	 * @return DataResponse
 	 */
-	public function setAdminConfig(): DataResponse {
-		$values = $this->request->getParam('values', []);
-		if (!is_array($values)) {
-			return new DataResponse([], Http::STATUS_BAD_REQUEST);
-		}
-
+	public function setAdminConfig(array $values): DataResponse {
 		$clientIdWasUpdated = isset($values['client_id']) && is_string($values['client_id']);
 
 		foreach ($values as $key => $value) {
@@ -241,12 +230,7 @@ class ConfigController extends Controller {
 	 * @return DataResponse
 	 */
 	#[PasswordConfirmationRequired]
-	public function setSensitiveAdminConfig(): DataResponse {
-		$values = $this->request->getParam('values', []);
-		if (!is_array($values)) {
-			return new DataResponse([], Http::STATUS_BAD_REQUEST);
-		}
-
+	public function setSensitiveAdminConfig(array $values): DataResponse {
 		$clientSecretWasUpdated = isset($values['client_secret']) && is_string($values['client_secret']);
 
 		foreach ($values as $key => $value) {
@@ -269,8 +253,8 @@ class ConfigController extends Controller {
 	 * @return DataResponse
 	 */
 	#[PasswordConfirmationRequired]
-	public function registerAdminOauthClient(): DataResponse {
-		$matrixUrl = $this->matrixAPIService->normalizeMatrixUrl($this->request->getParam('oauth_instance_url', ''));
+	public function registerAdminOauthClient(string $oauth_instance_url): DataResponse {
+		$matrixUrl = $this->matrixAPIService->normalizeMatrixUrl($oauth_instance_url);
 		if ($matrixUrl === '') {
 			return new DataResponse(['error' => $this->l->t('Please provide a Matrix OAuth homeserver URL first')], Http::STATUS_BAD_REQUEST);
 		}
