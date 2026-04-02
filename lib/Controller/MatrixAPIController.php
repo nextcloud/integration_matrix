@@ -18,7 +18,10 @@ use OCA\Matrix\Service\MatrixAPIService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\Files\NotPermittedException;
 use OCP\IRequest;
 use OCP\Lock\LockedException;
@@ -41,6 +44,25 @@ class MatrixAPIController extends Controller {
 	#[NoAdminRequired]
 	public function getMatrixUrl(): DataResponse {
 		return new DataResponse($this->matrixAPIService->getMatrixUrl($this->userId));
+	}
+
+	/**
+	 * @return Response
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function getUserAvatar(): Response {
+		$response = $this->matrixAPIService->getMyAvatar($this->userId);
+		if ($response === null) {
+			return new DataResponse('', Http::STATUS_NOT_FOUND);
+		}
+
+		$contentType = $response->getHeader('Content-Type');
+		$displayResponse = new DataDisplayResponse((string)$response->getBody(), Http::STATUS_OK, [
+			'Content-Type' => $contentType !== '' ? $contentType : 'application/octet-stream',
+		]);
+		$displayResponse->addHeader('Cache-Control', 'private, max-age=300');
+		return $displayResponse;
 	}
 
 	/**

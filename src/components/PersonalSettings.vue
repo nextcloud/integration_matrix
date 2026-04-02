@@ -6,6 +6,10 @@
 		</h2>
 		<div id="matrix-content">
 			<div v-if="connected" class="line connected-line">
+				<NcAvatar v-if="state.user_avatar_set"
+					:size="32"
+					:url="userAvatarUrl"
+					:display-name="connectedDisplayName" />
 				<CheckIcon :size="20" class="icon success-icon" />
 				<label class="matrix-connected">
 					{{ t('integration_matrix', 'Connected as {user}', { user: connectedDisplayName }) }}
@@ -129,6 +133,7 @@ import NcFormBox from '@nextcloud/vue/components/NcFormBox'
 import NcFormBoxSwitch from '@nextcloud/vue/components/NcFormBoxSwitch'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
+import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
@@ -153,6 +158,7 @@ export default {
 		NcFormBoxSwitch,
 		NcNoteCard,
 		NcTextField,
+		NcAvatar,
 		OpenInNewIcon,
 	},
 
@@ -168,6 +174,9 @@ export default {
 	},
 
 	computed: {
+		userAvatarUrl() {
+			return generateUrl('/apps/integration_matrix/user-avatar')
+		},
 		effectiveMatrixUrl() {
 			return this.state.url || this.state.oauth_instance_url
 		},
@@ -198,6 +207,7 @@ export default {
 			this.state.user_name = ''
 			this.state.user_displayname = ''
 			this.state.user_id = ''
+			this.state.user_avatar_set = false
 			this.accessToken = ''
 			this.saveOptions({ token: '' })
 		},
@@ -225,6 +235,7 @@ export default {
 					this.state.token = 'dummyTokenContent'
 					this.state.user_name = data.userName
 					this.state.user_displayname = data.userDisplayName
+					this.state.user_avatar_set = !!data.userAvatarSet
 					showSuccess(t('integration_matrix', 'Successfully connected to Matrix!'))
 				}
 			}).catch((error) => {
@@ -248,6 +259,7 @@ export default {
 							this.state.user_id = response.data.user_id
 							this.state.user_name = response.data.user_name
 							this.state.user_displayname = response.data.user_displayname
+							this.state.user_avatar_set = !!response.data.user_avatar_set
 						}
 					} else if (showSavedMessage) {
 						showSuccess(t('integration_matrix', 'Matrix options saved'))
@@ -298,7 +310,7 @@ export default {
 	}
 
 	.success-icon {
-		color: var(--color-success);
+		color: var(--color-success-text);
 	}
 
 	.error-icon {

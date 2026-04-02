@@ -35,6 +35,7 @@ class Personal implements ISettings {
 		$matrixUserId = $this->config->getValueString($this->userId, Application::APP_ID, 'user_id');
 		$matrixUserName = $this->config->getValueString($this->userId, Application::APP_ID, 'user_name');
 		$matrixUserDisplayName = $this->config->getValueString($this->userId, Application::APP_ID, 'user_displayname');
+		$userAvatarSet = $this->config->getValueString($this->userId, Application::APP_ID, 'user_avatar_url') !== '';
 		$oauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
 		$oauthApiUrl = $oauthUrl !== '' ? $this->matrixAPIService->resolveMatrixUrl($oauthUrl) : '';
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
@@ -56,6 +57,7 @@ class Personal implements ISettings {
 			'user_id' => $matrixUserId,
 			'user_name' => $matrixUserName,
 			'user_displayname' => $matrixUserDisplayName,
+			'user_avatar_set' => $userAvatarSet,
 			'navigation_enabled' => $navigationEnabled,
 			'file_action_enabled' => $fileActionEnabled,
 		];

@@ -27,7 +27,7 @@ return [
 		['name' => 'matrixAPI#sendFile', 'url' => '/sendFile', 'verb' => 'POST'],
 		['name' => 'matrixAPI#getRooms', 'url' => '/rooms', 'verb' => 'GET'],
 		['name' => 'matrixAPI#getMatrixUrl', 'url' => '/url', 'verb' => 'GET'],
-		['name' => 'matrixAPI#getUserAvatar', 'url' => '/users/{userId}/image', 'verb' => 'GET'],
+		['name' => 'matrixAPI#getUserAvatar', 'url' => '/user-avatar', 'verb' => 'GET'],
 
 		['name' => 'files#getFileImage', 'url' => '/preview', 'verb' => 'GET'],
 	]

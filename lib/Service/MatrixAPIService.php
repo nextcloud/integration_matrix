@@ -27,6 +27,7 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
+use OCP\Http\Client\IResponse;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Lock\LockedException;
@@ -244,6 +245,54 @@ class MatrixAPIService {
 			];
 		}
 		return $rooms;
+	}
+
+	/**
+	 * @param string $userId
+	 * @return IResponse|null
+	 */
+	public function getMyAvatar(string $userId): ?IResponse {
+		$avatarUrl = $this->config->getValueString($userId, Application::APP_ID, 'user_avatar_url');
+		if ($avatarUrl === '') {
+			return null;
+		}
+
+		$avatarParts = $this->parseMxcUri($avatarUrl);
+		if ($avatarParts === null) {
+			return null;
+		}
+
+		$this->checkTokenExpiration($userId);
+		$matrixUrl = $this->getMatrixUrl($userId);
+		$accessToken = $this->config->getValueString($userId, Application::APP_ID, 'token');
+		$accessToken = $accessToken === '' ? '' : $this->crypto->decrypt($accessToken);
+		if ($matrixUrl === '' || $accessToken === '') {
+			return null;
+		}
+
+		$thumbnailUrl = sprintf(
+			'%s/_matrix/client/v1/media/thumbnail/%s/%s?width=%d&height=%d&method=crop',
+			$matrixUrl,
+			urlencode($avatarParts['serverName']),
+			urlencode($avatarParts['mediaId']),
+			64,
+			64,
+		);
+
+		try {
+			return $this->client->get($thumbnailUrl, [
+				'headers' => [
+					'Authorization' => 'Bearer ' . $accessToken,
+					'User-Agent' => Application::INTEGRATION_USER_AGENT,
+				],
+			]);
+		} catch (ServerException|ClientException $e) {
+			$this->logger->error('Matrix avatar download error: ' . $e->getMessage(), ['app' => Application::APP_ID]);
+			return null;
+		} catch (Exception $e) {
+			$this->logger->error('Matrix avatar download error: ' . $e->getMessage(), ['app' => Application::APP_ID]);
+			return null;
+		}
 	}
 
 	/**
@@ -618,6 +667,29 @@ class MatrixAPIService {
 	 */
 	private function generateTxnId(): string {
 		return sprintf('%d-%s', (new DateTime())->getTimestamp(), bin2hex(random_bytes(8)));
+	}
+
+	/**
+	 * @param string $mxcUri
+	 * @return array{serverName: string, mediaId: string}|null
+	 */
+	private function parseMxcUri(string $mxcUri): ?array {
+		$parts = parse_url($mxcUri);
+		$serverName = $parts['host'] ?? '';
+		$path = $parts['path'] ?? '';
+		if (!is_string($serverName) || !is_string($path) || $serverName === '' || $path === '') {
+			return null;
+		}
+
+		$mediaId = ltrim($path, '/');
+		if ($mediaId === '') {
+			return null;
+		}
+
+		return [
+			'serverName' => $serverName,
+			'mediaId' => $mediaId,
+		];
 	}
 
 	/**

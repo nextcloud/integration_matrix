@@ -176,7 +176,7 @@ class ConfigController extends Controller {
 			if ($key === 'token' && $value !== '') {
 				$this->config->setValueString($this->userId, Application::APP_ID, $key, $this->crypto->encrypt($value));
 			} elseif ($key === 'token' && $value === '') {
-				foreach (['token', 'user_id', 'user_name', 'user_displayname', 'refresh_token', 'token_expires_at'] as $configKey) {
+				foreach (['token', 'user_id', 'user_name', 'user_displayname', 'user_avatar_url', 'refresh_token', 'token_expires_at'] as $configKey) {
 					$this->config->deleteUserConfig($this->userId, Application::APP_ID, $configKey);
 				}
 			} else {
@@ -316,8 +316,12 @@ class ConfigController extends Controller {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function popupSuccessPage(string $user_name, string $user_displayname): TemplateResponse {
-		$this->initialStateService->provideInitialState('popup-data', ['user_name' => $user_name, 'user_displayname' => $user_displayname]);
+	public function popupSuccessPage(string $user_name, string $user_displayname, bool $user_avatar_set = false): TemplateResponse {
+		$this->initialStateService->provideInitialState('popup-data', [
+			'user_name' => $user_name,
+			'user_displayname' => $user_displayname,
+			'user_avatar_set' => $user_avatar_set,
+		]);
 		return new TemplateResponse(Application::APP_ID, 'popupSuccess', [], TemplateResponse::RENDER_AS_GUEST);
 	}
 
@@ -422,6 +426,7 @@ class ConfigController extends Controller {
 			return new RedirectResponse($this->urlGenerator->linkToRoute('integration_matrix.config.popupSuccessPage', [
 				'user_name' => $userInfo['user_name'] ?? '',
 				'user_displayname' => $userInfo['user_displayname'] ?? '',
+				'user_avatar_set' => $userInfo['user_avatar_set'] ?? false,
 			]));
 		}
 
@@ -504,21 +509,29 @@ class ConfigController extends Controller {
 			$this->config->setValueString($this->userId, Application::APP_ID, 'user_id', $userId ?? '');
 			$this->config->setValueString($this->userId, Application::APP_ID, 'user_name', $userName ?? '');
 			$this->config->setValueString($this->userId, Application::APP_ID, 'user_displayname', $userDisplayName);
+			if ($profileInfo['avatar_url'] ?? '') {
+				$this->config->setValueString($this->userId, Application::APP_ID, 'user_avatar_url', $profileInfo['avatar_url']);
+			} else {
+				$this->config->deleteUserConfig($this->userId, Application::APP_ID, 'user_avatar_url');
+			}
 
 			return [
 				'user_id' => $userId ?? '',
 				'user_name' => $userName ?? '',
 				'user_displayname' => $userDisplayName,
+				'user_avatar_set' => ($profileInfo['avatar_url'] ?? '') !== '',
 			];
 		}
 
 		$this->config->setValueString($this->userId, Application::APP_ID, 'user_id', '');
 		$this->config->setValueString($this->userId, Application::APP_ID, 'user_name', '');
 		$this->config->setValueString($this->userId, Application::APP_ID, 'user_displayname', '');
+		$this->config->deleteUserConfig($this->userId, Application::APP_ID, 'user_avatar_url');
 		return [
 			'user_id' => '',
 			'user_name' => '',
 			'user_displayname' => '',
+			'user_avatar_set' => false,
 		];
 	}
 }
