@@ -115,7 +115,7 @@ class ConfigController extends Controller {
 		}
 		if (!$this->isUserAllowedToUseAdminOauth($userMatrixUrl, $matrixUrl)) {
 			return new DataResponse([
-				'error' => $this->l->t('OAuth is only available when your Matrix server address matches the administrator-provided homeserver or is left empty'),
+				'error' => $this->l->t('OAuth is only available when your Matrix server address matches the administrator-provided server or is left empty'),
 			], Http::STATUS_BAD_REQUEST);
 		}
 
@@ -126,7 +126,7 @@ class ConfigController extends Controller {
 
 		$authorizationEndpoint = $authMetadata['authorization_endpoint'] ?? '';
 		if ($authorizationEndpoint === '') {
-			return new DataResponse(['error' => $this->l->t('The Matrix homeserver did not provide an OAuth authorization endpoint')], Http::STATUS_BAD_REQUEST);
+			return new DataResponse(['error' => $this->l->t('The Matrix server did not provide an OAuth authorization endpoint')], Http::STATUS_BAD_REQUEST);
 		}
 
 		$redirectUri = $this->urlGenerator->getAbsoluteURL(
@@ -256,7 +256,7 @@ class ConfigController extends Controller {
 	public function registerAdminOauthClient(string $oauth_instance_url): DataResponse {
 		$matrixUrl = $this->matrixAPIService->normalizeMatrixUrl($oauth_instance_url);
 		if ($matrixUrl === '') {
-			return new DataResponse(['error' => $this->l->t('Please provide a Matrix OAuth homeserver URL first')], Http::STATUS_BAD_REQUEST);
+			return new DataResponse(['error' => $this->l->t('Please provide a Matrix OAuth server URL first')], Http::STATUS_BAD_REQUEST);
 		}
 
 		$authMetadata = $this->matrixAPIService->getAuthMetadata($matrixUrl);
@@ -266,7 +266,7 @@ class ConfigController extends Controller {
 
 		$registrationEndpoint = $authMetadata['registration_endpoint'] ?? '';
 		if ($registrationEndpoint === '') {
-			return new DataResponse(['error' => $this->l->t('The Matrix homeserver did not provide an OAuth client registration endpoint')], Http::STATUS_BAD_REQUEST);
+			return new DataResponse(['error' => $this->l->t('The Matrix server did not provide an OAuth client registration endpoint')], Http::STATUS_BAD_REQUEST);
 		}
 
 		$redirectUri = $this->urlGenerator->linkToRouteAbsolute('integration_matrix.config.oauthRedirect');

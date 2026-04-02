@@ -115,7 +115,7 @@ class MatrixAPIService {
 		} catch (ServerException|ClientException) {
 			// Fall back to the configured URL when discovery is unavailable.
 		} catch (Exception $e) {
-			$this->logger->debug('Matrix homeserver discovery error: ' . $e->getMessage(), ['app' => Application::APP_ID]);
+			$this->logger->debug('Matrix server discovery error: ' . $e->getMessage(), ['app' => Application::APP_ID]);
 		}
 
 		$this->resolvedMatrixUrlCache[$matrixUrl] = $matrixUrl;
@@ -478,7 +478,7 @@ class MatrixAPIService {
 	public function requestOAuthAccessToken(array $authMetadata, array $params, ?string $clientSecret = null): array {
 		$tokenEndpoint = $authMetadata['token_endpoint'] ?? '';
 		if ($tokenEndpoint === '') {
-			return ['error' => $this->l10n->t('The Matrix homeserver did not provide an OAuth token endpoint')];
+			return ['error' => $this->l10n->t('The Matrix server did not provide an OAuth token endpoint')];
 		}
 
 		$options = [
@@ -527,7 +527,7 @@ class MatrixAPIService {
 	public function registerOAuthClient(array $authMetadata, array $params): array {
 		$registrationEndpoint = $authMetadata['registration_endpoint'] ?? '';
 		if ($registrationEndpoint === '') {
-			return ['error' => $this->l10n->t('The Matrix homeserver did not provide an OAuth client registration endpoint')];
+			return ['error' => $this->l10n->t('The Matrix server did not provide an OAuth client registration endpoint')];
 		}
 
 		$options = [

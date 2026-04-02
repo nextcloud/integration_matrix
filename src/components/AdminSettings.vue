@@ -6,10 +6,10 @@
 		</h2>
 		<div id="matrix-content">
 			<NcNoteCard type="info">
-				{{ t('integration_matrix', 'Choose a Matrix homeserver and register an OAuth client automatically if you want users to connect with OAuth.') }}
+				{{ t('integration_matrix', 'Choose a Matrix server and register an OAuth client automatically if you want users to connect with OAuth.') }}
 				{{ t('integration_matrix', 'Users can still connect manually with an access token even if OAuth is configured.') }}
 				<br>
-				{{ t('integration_matrix', 'If automatic registration is not available on your homeserver, you can still enter the client ID and secret manually.') }}
+				{{ t('integration_matrix', 'If automatic registration is not available on your Matrix server, you can still enter the client ID and secret manually.') }}
 				<br>
 				{{ t('integration_matrix', 'This redirect URI is used for the registered OAuth client:') }}
 				<br>
@@ -18,7 +18,7 @@
 
 			<NcTextField
 				v-model="state.oauth_instance_url"
-				:label="t('integration_matrix', 'Matrix OAuth homeserver URL')"
+				:label="t('integration_matrix', 'Matrix OAuth server URL')"
 				:placeholder="t('integration_matrix', 'https://matrix.example.com')"
 				:show-trailing-button="!!state.oauth_instance_url"
 				@trailing-button-click="state.oauth_instance_url = ''; onInput()"
@@ -40,7 +40,7 @@
 			</NcButton>
 
 			<NcNoteCard v-if="hasRegisteredClientMismatch" type="warning">
-				{{ t('integration_matrix', 'The stored OAuth client was registered for {matrixUrl}. Register a new client for the currently selected homeserver to enable OAuth again.', { matrixUrl: state.registered_client_url }) }}
+				{{ t('integration_matrix', 'The stored OAuth client was registered for {matrixUrl}. Register a new client for the currently selected server to enable OAuth again.', { matrixUrl: state.registered_client_url }) }}
 			</NcNoteCard>
 
 			<NcTextField

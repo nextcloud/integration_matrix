@@ -17,14 +17,14 @@
 
 			<div v-if="state.oauth_configured" class="auth-block">
 				<NcNoteCard v-if="state.oauth_possible" type="info">
-					{{ t('integration_matrix', 'Connect to the administrator-provided Matrix homeserver with OAuth.') }}
+					{{ t('integration_matrix', 'Connect to the administrator-provided Matrix server with OAuth.') }}
 				</NcNoteCard>
 				<NcNoteCard v-else-if="state.oauth_blocked_by_user_url" type="warning">
-					{{ t('integration_matrix', 'OAuth is only available when your Matrix server address matches the administrator-provided homeserver or is left empty to inherit it.') }}
+					{{ t('integration_matrix', 'OAuth is only available when your Matrix server address matches the administrator-provided server or is left empty to inherit it.') }}
 				</NcNoteCard>
 				<NcTextField
 					:model-value="state.oauth_instance_url"
-					:label="t('integration_matrix', 'Matrix OAuth homeserver URL')"
+					:label="t('integration_matrix', 'Matrix OAuth server URL')"
 					disabled>
 					<template #icon>
 						<EarthIcon :size="20" />
@@ -44,7 +44,7 @@
 
 			<div class="auth-block">
 				<NcNoteCard type="info">
-					{{ t('integration_matrix', 'Or connect manually with a Matrix server address and an access token.') }}
+					{{ t('integration_matrix', 'Connect manually with a Matrix server address and an access token.') }}
 				</NcNoteCard>
 				<NcTextField
 					v-model="state.url"
@@ -59,7 +59,7 @@
 					</template>
 				</NcTextField>
 				<NcNoteCard v-if="state.oauth_instance_url && !connected" type="info">
-					{{ t('integration_matrix', 'Leave this empty to use the administrator-provided homeserver: {matrixUrl}', { matrixUrl: state.oauth_instance_url }) }}
+					{{ t('integration_matrix', 'Leave this empty to use the administrator-provided server: {matrixUrl}', { matrixUrl: state.oauth_instance_url }) }}
 				</NcNoteCard>
 				<NcTextField
 					v-model="accessToken"
