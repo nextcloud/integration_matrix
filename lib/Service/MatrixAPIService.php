@@ -178,21 +178,19 @@ class MatrixAPIService {
 			}
 		}
 
-		if ($roomName === '') {
-			foreach ($stateEvents as $event) {
-				if (($event['type'] ?? '') === 'm.room.member') {
-					$stateKey = $event['state_key'] ?? '';
-					$membership = $event['content']['membership'] ?? '';
-					if ($stateKey !== '' && $stateKey !== $matrixUserId && $membership === 'join') {
-						$otherJoinedMemberId = $stateKey;
-						$otherJoinedMemberDisplayname = $event['content']['displayname'] ?? null;
-						break;
-					}
+		foreach ($stateEvents as $event) {
+			if (($event['type'] ?? '') === 'm.room.member') {
+				$stateKey = $event['state_key'] ?? '';
+				$membership = $event['content']['membership'] ?? '';
+				if ($stateKey !== '' && $stateKey !== $matrixUserId && $membership === 'join') {
+					$otherJoinedMemberId = $stateKey;
+					$otherJoinedMemberDisplayname = $event['content']['displayname'] ?? null;
+					break;
 				}
 			}
 		}
 
-		if ($roomName === '' && $otherJoinedMemberId !== null) {
+		if ($otherJoinedMemberId !== null) {
 			if ($otherJoinedMemberDisplayname !== null && $otherJoinedMemberDisplayname !== '') {
 				return [
 					'type' => 'dm',
@@ -630,12 +628,12 @@ class MatrixAPIService {
 		$parts = parse_url($matrixUrl);
 		$scheme = $parts['scheme'] ?? '';
 		$host = $parts['host'] ?? '';
-		if (!is_string($scheme) || !is_string($host) || $scheme === '' || $host === '') {
+		if ($scheme === '' || $host === '') {
 			return '';
 		}
 
 		$wellKnownUrl = $scheme . '://' . $host;
-		if (isset($parts['port']) && is_int($parts['port'])) {
+		if (isset($parts['port'])) {
 			$wellKnownUrl .= ':' . $parts['port'];
 		}
 

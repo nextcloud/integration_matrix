@@ -144,7 +144,7 @@ class ConfigController extends Controller {
 		$this->config->setValueString($this->userId, Application::APP_ID, 'oauth_state', $oauthState);
 		$this->config->setValueString($this->userId, Application::APP_ID, 'oauth_code_verifier', $codeVerifier);
 		$this->config->setValueString($this->userId, Application::APP_ID, 'redirect_uri', $redirectUri);
-		$this->config->setValueString($this->userId, Application::APP_ID, 'oauth_origin', is_string($oauthOrigin) ? $oauthOrigin : 'settings');
+		$this->config->setValueString($this->userId, Application::APP_ID, 'oauth_origin', $oauthOrigin);
 
 		$authorizationUrl = $authorizationEndpoint . '?' . http_build_query([
 			'client_id' => $clientId,
