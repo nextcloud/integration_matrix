@@ -7,7 +7,7 @@ use OCA\Matrix\Service\MatrixAPIService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
-use OCP\IConfig;
+use OCP\Config\IUserConfig;
 use OCP\Security\ICrypto;
 use OCP\Settings\ISettings;
 
@@ -15,7 +15,7 @@ class Personal implements ISettings {
 
 	public function __construct(
 		private IAppConfig $appConfig,
-		private IConfig $config,
+		private IUserConfig $config,
 		private IInitialState $initialStateService,
 		private ICrypto $crypto,
 		private MatrixAPIService $matrixAPIService,
@@ -27,20 +27,20 @@ class Personal implements ISettings {
 	 * @return TemplateResponse
 	 */
 	public function getForm(): TemplateResponse {
-		$token = $this->config->getUserValue($this->userId, Application::APP_ID, 'token');
+		$token = $this->config->getValueString($this->userId, Application::APP_ID, 'token');
 		$token = $token === '' ? '' : $this->crypto->decrypt($token);
 		$navlinkDefault = $this->appConfig->getAppValueString('navlink_default', '0', lazy: true);
-		$navigationEnabled = $this->config->getUserValue($this->userId, Application::APP_ID, 'navigation_enabled', $navlinkDefault) === '1';
-		$fileActionEnabled = $this->config->getUserValue($this->userId, Application::APP_ID, 'file_action_enabled', '1') === '1';
-		$matrixUserId = $this->config->getUserValue($this->userId, Application::APP_ID, 'user_id');
-		$matrixUserName = $this->config->getUserValue($this->userId, Application::APP_ID, 'user_name');
-		$matrixUserDisplayName = $this->config->getUserValue($this->userId, Application::APP_ID, 'user_displayname');
+		$navigationEnabled = $this->config->getValueString($this->userId, Application::APP_ID, 'navigation_enabled', $navlinkDefault) === '1';
+		$fileActionEnabled = $this->config->getValueString($this->userId, Application::APP_ID, 'file_action_enabled', '1') === '1';
+		$matrixUserId = $this->config->getValueString($this->userId, Application::APP_ID, 'user_id');
+		$matrixUserName = $this->config->getValueString($this->userId, Application::APP_ID, 'user_name');
+		$matrixUserDisplayName = $this->config->getValueString($this->userId, Application::APP_ID, 'user_displayname');
 		$oauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
 		$oauthApiUrl = $oauthUrl !== '' ? $this->matrixAPIService->resolveMatrixUrl($oauthUrl) : '';
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$registeredClientUrl = $this->appConfig->getAppValueString('registered_client_url', lazy: true);
 		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true) === '1';
-		$url = $this->config->getUserValue($this->userId, Application::APP_ID, 'url');
+		$url = $this->config->getValueString($this->userId, Application::APP_ID, 'url');
 		$oauthConfigured = $oauthUrl !== '' && $clientId !== '' && $this->isAdminOauthClientCompatible($oauthUrl, $registeredClientUrl);
 		$oauthBlockedByUserUrl = $oauthConfigured && $url !== '' && !$this->matrixAPIService->sameMatrixServer($url, $oauthUrl);
 

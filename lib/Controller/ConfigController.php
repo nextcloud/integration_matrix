@@ -24,7 +24,7 @@ use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
-use OCP\IConfig;
+use OCP\Config\IUserConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -41,7 +41,7 @@ class ConfigController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IConfig $config,
+		private IUserConfig $config,
 		private IAppConfig $appConfig,
 		private IURLGenerator $urlGenerator,
 		private IL10N $l,
@@ -59,9 +59,9 @@ class ConfigController extends Controller {
 	#[NoAdminRequired]
 	public function isUserConnected(): DataResponse {
 		$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
-		$userMatrixUrl = $this->config->getUserValue($this->userId, Application::APP_ID, 'url');
+		$userMatrixUrl = $this->config->getValueString($this->userId, Application::APP_ID, 'url');
 		$matrixUrl = $userMatrixUrl !== '' ? $userMatrixUrl : $adminOauthUrl;
-		$token = $this->config->getUserValue($this->userId, Application::APP_ID, 'token');
+		$token = $this->config->getValueString($this->userId, Application::APP_ID, 'token');
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true) === '1';
 		$registeredClientUrl = $this->appConfig->getAppValueString('registered_client_url', lazy: true);
@@ -82,14 +82,14 @@ class ConfigController extends Controller {
 	#[NoAdminRequired]
 	public function getFilesToSend(): DataResponse {
 		$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
-		$matrixUrl = $this->config->getUserValue($this->userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
-		$token = $this->config->getUserValue($this->userId, Application::APP_ID, 'token');
+		$matrixUrl = $this->config->getValueString($this->userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
+		$token = $this->config->getValueString($this->userId, Application::APP_ID, 'token');
 
 		if ($matrixUrl !== '' && $token !== '') {
-			$fileIdsToSendAfterOAuth = $this->config->getUserValue($this->userId, Application::APP_ID, 'file_ids_to_send_after_oauth');
-			$currentDirAfterOAuth = $this->config->getUserValue($this->userId, Application::APP_ID, 'current_dir_after_oauth');
-			$this->config->deleteUserValue($this->userId, Application::APP_ID, 'file_ids_to_send_after_oauth');
-			$this->config->deleteUserValue($this->userId, Application::APP_ID, 'current_dir_after_oauth');
+			$fileIdsToSendAfterOAuth = $this->config->getValueString($this->userId, Application::APP_ID, 'file_ids_to_send_after_oauth');
+			$currentDirAfterOAuth = $this->config->getValueString($this->userId, Application::APP_ID, 'current_dir_after_oauth');
+			$this->config->deleteUserConfig($this->userId, Application::APP_ID, 'file_ids_to_send_after_oauth');
+			$this->config->deleteUserConfig($this->userId, Application::APP_ID, 'current_dir_after_oauth');
 
 			return new DataResponse([
 				'file_ids_to_send_after_oauth' => $fileIdsToSendAfterOAuth,
@@ -109,7 +109,7 @@ class ConfigController extends Controller {
 		$matrixUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$registeredClientUrl = $this->appConfig->getAppValueString('registered_client_url', lazy: true);
-		$userMatrixUrl = $this->config->getUserValue($this->userId, Application::APP_ID, 'url');
+		$userMatrixUrl = $this->config->getValueString($this->userId, Application::APP_ID, 'url');
 
 		if ($matrixUrl === '' || $clientId === '' || !$this->isAdminOauthClientCompatible($matrixUrl, $registeredClientUrl)) {
 			return new DataResponse(['error' => $this->l->t('OAuth is not configured')], Http::STATUS_BAD_REQUEST);
@@ -133,19 +133,19 @@ class ConfigController extends Controller {
 		$redirectUri = $this->urlGenerator->getAbsoluteURL(
 			$this->urlGenerator->linkToRoute('integration_matrix.config.oauthRedirect')
 		);
-		$deviceId = $this->config->getUserValue($this->userId, Application::APP_ID, 'oauth_device_id');
+		$deviceId = $this->config->getValueString($this->userId, Application::APP_ID, 'oauth_device_id');
 		if ($deviceId === '') {
 			$deviceId = $this->generateOauthDeviceId();
-			$this->config->setUserValue($this->userId, Application::APP_ID, 'oauth_device_id', $deviceId);
+			$this->config->setValueString($this->userId, Application::APP_ID, 'oauth_device_id', $deviceId);
 		}
 		$oauthState = bin2hex(random_bytes(16));
 		$codeVerifier = rtrim(strtr(base64_encode(random_bytes(64)), '+/', '-_'), '=');
 		$codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
 
-		$this->config->setUserValue($this->userId, Application::APP_ID, 'oauth_state', $oauthState);
-		$this->config->setUserValue($this->userId, Application::APP_ID, 'oauth_code_verifier', $codeVerifier);
-		$this->config->setUserValue($this->userId, Application::APP_ID, 'redirect_uri', $redirectUri);
-		$this->config->setUserValue($this->userId, Application::APP_ID, 'oauth_origin', is_string($oauthOrigin) ? $oauthOrigin : 'settings');
+		$this->config->setValueString($this->userId, Application::APP_ID, 'oauth_state', $oauthState);
+		$this->config->setValueString($this->userId, Application::APP_ID, 'oauth_code_verifier', $codeVerifier);
+		$this->config->setValueString($this->userId, Application::APP_ID, 'redirect_uri', $redirectUri);
+		$this->config->setValueString($this->userId, Application::APP_ID, 'oauth_origin', is_string($oauthOrigin) ? $oauthOrigin : 'settings');
 
 		$authorizationUrl = $authorizationEndpoint . '?' . http_build_query([
 			'client_id' => $clientId,
@@ -180,26 +180,26 @@ class ConfigController extends Controller {
 				continue;
 			}
 			if ($key === 'token' && $value !== '') {
-				$this->config->setUserValue($this->userId, Application::APP_ID, $key, $this->crypto->encrypt($value));
+				$this->config->setValueString($this->userId, Application::APP_ID, $key, $this->crypto->encrypt($value));
 			} elseif ($key === 'token' && $value === '') {
 				foreach (['token', 'user_id', 'user_name', 'user_displayname', 'refresh_token', 'token_expires_at'] as $configKey) {
-					$this->config->deleteUserValue($this->userId, Application::APP_ID, $configKey);
+					$this->config->deleteUserConfig($this->userId, Application::APP_ID, $configKey);
 				}
 			} else {
 				if ($key === 'url') {
 					$value = $this->matrixAPIService->normalizeMatrixUrl($value);
 				}
-				$this->config->setUserValue($this->userId, Application::APP_ID, $key, $value);
+				$this->config->setValueString($this->userId, Application::APP_ID, $key, $value);
 			}
 		}
 
 		$result = [];
 		if (isset($values['token']) && is_string($values['token']) && $values['token'] !== '') {
-			$this->config->deleteUserValue($this->userId, Application::APP_ID, 'refresh_token');
-			$this->config->deleteUserValue($this->userId, Application::APP_ID, 'token_expires_at');
+			$this->config->deleteUserConfig($this->userId, Application::APP_ID, 'refresh_token');
+			$this->config->deleteUserConfig($this->userId, Application::APP_ID, 'token_expires_at');
 			$result = $this->storeUserInfo();
 			if (($result['user_name'] ?? '') === '') {
-				$this->config->deleteUserValue($this->userId, Application::APP_ID, 'token');
+				$this->config->deleteUserConfig($this->userId, Application::APP_ID, 'token');
 			}
 		}
 		return new DataResponse($result);
@@ -355,17 +355,17 @@ class ConfigController extends Controller {
 		string $error = '',
 		string $error_description = '',
 	): RedirectResponse {
-		$storedState = $this->config->getUserValue($this->userId, Application::APP_ID, 'oauth_state');
-		$storedVerifier = $this->config->getUserValue($this->userId, Application::APP_ID, 'oauth_code_verifier');
-		$oauthOrigin = $this->config->getUserValue($this->userId, Application::APP_ID, 'oauth_origin');
-		$redirectUri = $this->config->getUserValue($this->userId, Application::APP_ID, 'redirect_uri');
+		$storedState = $this->config->getValueString($this->userId, Application::APP_ID, 'oauth_state');
+		$storedVerifier = $this->config->getValueString($this->userId, Application::APP_ID, 'oauth_code_verifier');
+		$oauthOrigin = $this->config->getValueString($this->userId, Application::APP_ID, 'oauth_origin');
+		$redirectUri = $this->config->getValueString($this->userId, Application::APP_ID, 'redirect_uri');
 		$matrixUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$clientSecret = $this->appConfig->getAppValueString('client_secret', lazy: true);
 		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true) === '1';
 
 		foreach (['oauth_state', 'oauth_code_verifier'] as $configKey) {
-			$this->config->deleteUserValue($this->userId, Application::APP_ID, $configKey);
+			$this->config->deleteUserConfig($this->userId, Application::APP_ID, $configKey);
 		}
 
 		if ($error !== '') {
@@ -395,7 +395,7 @@ class ConfigController extends Controller {
 			return $this->redirectToSettingsError($message);
 		}
 
-		$this->config->setUserValue(
+		$this->config->setValueString(
 			$this->userId,
 			Application::APP_ID,
 			'token',
@@ -404,35 +404,35 @@ class ConfigController extends Controller {
 
 		$refreshToken = $tokenResponse['refresh_token'] ?? '';
 		if ($refreshToken !== '') {
-			$this->config->setUserValue(
+			$this->config->setValueString(
 				$this->userId,
 				Application::APP_ID,
 				'refresh_token',
 				$this->crypto->encrypt($refreshToken)
 			);
 		} else {
-			$this->config->deleteUserValue($this->userId, Application::APP_ID, 'refresh_token');
+			$this->config->deleteUserConfig($this->userId, Application::APP_ID, 'refresh_token');
 		}
 
 		if (isset($tokenResponse['expires_in'])) {
-			$this->config->setUserValue(
+			$this->config->setValueString(
 				$this->userId,
 				Application::APP_ID,
 				'token_expires_at',
 				strval(time() + (int)$tokenResponse['expires_in'])
 			);
 		} else {
-			$this->config->deleteUserValue($this->userId, Application::APP_ID, 'token_expires_at');
+			$this->config->deleteUserConfig($this->userId, Application::APP_ID, 'token_expires_at');
 		}
 
 		$userInfo = $this->storeUserInfo();
 		if (($userInfo['user_name'] ?? '') === '') {
 			foreach (['token', 'refresh_token', 'token_expires_at'] as $configKey) {
-				$this->config->deleteUserValue($this->userId, Application::APP_ID, $configKey);
+				$this->config->deleteUserConfig($this->userId, Application::APP_ID, $configKey);
 			}
 			return $this->redirectToSettingsError($this->l->t('The OAuth access token could not be used with the Matrix client-server API'));
 		}
-		$this->config->deleteUserValue($this->userId, Application::APP_ID, 'oauth_origin');
+		$this->config->deleteUserConfig($this->userId, Application::APP_ID, 'oauth_origin');
 
 		if ($usePopup) {
 			return new RedirectResponse($this->urlGenerator->linkToRoute('integration_matrix.config.popupSuccessPage', [
@@ -452,8 +452,8 @@ class ConfigController extends Controller {
 			if (count($parts) > 1) {
 				$path = $parts[1];
 				if (count($parts) > 2) {
-					$this->config->setUserValue($this->userId, Application::APP_ID, 'file_ids_to_send_after_oauth', $parts[2]);
-					$this->config->setUserValue($this->userId, Application::APP_ID, 'current_dir_after_oauth', $path);
+					$this->config->setValueString($this->userId, Application::APP_ID, 'file_ids_to_send_after_oauth', $parts[2]);
+					$this->config->setValueString($this->userId, Application::APP_ID, 'current_dir_after_oauth', $path);
 				}
 				return new RedirectResponse($this->urlGenerator->linkToRoute('files.view.index', ['dir' => $path]));
 			}
@@ -517,9 +517,9 @@ class ConfigController extends Controller {
 			$userName = substr($userId, 1);
 			$profileInfo = $this->matrixAPIService->request($this->userId, 'profile/' . urlencode($userId));
 			$userDisplayName = $profileInfo['displayname'] ?? strtok($userName, ':');
-			$this->config->setUserValue($this->userId, Application::APP_ID, 'user_id', $userId ?? '');
-			$this->config->setUserValue($this->userId, Application::APP_ID, 'user_name', $userName ?? '');
-			$this->config->setUserValue($this->userId, Application::APP_ID, 'user_displayname', $userDisplayName);
+			$this->config->setValueString($this->userId, Application::APP_ID, 'user_id', $userId ?? '');
+			$this->config->setValueString($this->userId, Application::APP_ID, 'user_name', $userName ?? '');
+			$this->config->setValueString($this->userId, Application::APP_ID, 'user_displayname', $userDisplayName);
 
 			return [
 				'user_id' => $userId ?? '',
@@ -528,9 +528,9 @@ class ConfigController extends Controller {
 			];
 		}
 
-		$this->config->setUserValue($this->userId, Application::APP_ID, 'user_id', '');
-		$this->config->setUserValue($this->userId, Application::APP_ID, 'user_name', '');
-		$this->config->setUserValue($this->userId, Application::APP_ID, 'user_displayname', '');
+		$this->config->setValueString($this->userId, Application::APP_ID, 'user_id', '');
+		$this->config->setValueString($this->userId, Application::APP_ID, 'user_name', '');
+		$this->config->setValueString($this->userId, Application::APP_ID, 'user_displayname', '');
 		return [
 			'user_id' => '',
 			'user_name' => '',

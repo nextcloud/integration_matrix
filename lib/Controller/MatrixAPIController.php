@@ -20,9 +20,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\Files\NotPermittedException;
-use OCP\IConfig;
 use OCP\IRequest;
-use OCP\IURLGenerator;
 use OCP\Lock\LockedException;
 
 class MatrixAPIController extends Controller {
@@ -30,8 +28,6 @@ class MatrixAPIController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IConfig $config,
-		private IURLGenerator $urlGenerator,
 		private MatrixAPIService $matrixAPIService,
 		private ?string $userId,
 	) {

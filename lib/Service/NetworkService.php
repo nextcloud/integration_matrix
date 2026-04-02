@@ -16,9 +16,9 @@ use Exception;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 use OCA\Matrix\AppInfo\Application;
+use OCP\Config\IUserConfig;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\PreConditionNotMetException;
 use OCP\Security\ICrypto;
@@ -33,7 +33,7 @@ class NetworkService {
 	private IClient $client;
 
 	public function __construct(
-		private IConfig $config,
+		private IUserConfig $config,
 		IClientService $clientService,
 		private LoggerInterface $logger,
 		private IL10N $l10n,
@@ -60,7 +60,7 @@ class NetworkService {
 		string $method = 'GET',
 		bool $jsonResponse = true,
 	) {
-		$accessToken = $this->config->getUserValue($userId, Application::APP_ID, 'token');
+		$accessToken = $this->config->getValueString($userId, Application::APP_ID, 'token');
 		$accessToken = $accessToken === '' ? '' : $this->crypto->decrypt($accessToken);
 		try {
 			$url = $matrixUrl . '/_matrix/client/v3/' . $endPoint;

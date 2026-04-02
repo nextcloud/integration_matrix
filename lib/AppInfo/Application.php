@@ -17,8 +17,8 @@ use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\Config\IUserConfig;
 use OCP\EventDispatcher\IEventDispatcher;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\INavigationManager;
 use OCP\IURLGenerator;
@@ -30,18 +30,8 @@ class Application extends App implements IBootstrap {
 
 	public const INTEGRATION_USER_AGENT = 'Nextcloud Matrix integration';
 
-	/**
-	 * @var mixed
-	 */
-	private $config;
-	private $appConfig;
-
 	public function __construct(array $urlParams = []) {
 		parent::__construct(self::APP_ID, $urlParams);
-
-		$container = $this->getContainer();
-		$this->config = $container->get(IConfig::class);
-		$this->appConfig = $container->get(IAppConfig::class);
 	}
 
 	public function register(IRegistrationContext $context): void {
@@ -52,11 +42,13 @@ class Application extends App implements IBootstrap {
 		$context->injectFn(Closure::fromCallable([$this, 'loadFilesPlugin']));
 	}
 
-	public function loadFilesPlugin(IUserSession $userSession, IEventDispatcher $eventDispatcher): void {
+	public function loadFilesPlugin(
+		IUserSession $userSession, IEventDispatcher $eventDispatcher, IUserConfig $userConfig,
+	): void {
 		$user = $userSession->getUser();
 		if ($user !== null) {
 			$userId = $user->getUID();
-			if ($this->config->getUserValue($userId, self::APP_ID, 'file_action_enabled', '1') === '1') {
+			if ($userConfig->getValueString($userId, self::APP_ID, 'file_action_enabled', '1') === '1') {
 				$eventDispatcher->addListener(LoadAdditionalScriptsEvent::class, function () {
 					Util::addInitScript(self::APP_ID, self::APP_ID . '-filesplugin');
 				});
@@ -64,15 +56,17 @@ class Application extends App implements IBootstrap {
 		}
 	}
 
-	public function registerNavigation(IUserSession $userSession): void {
+	public function registerNavigation(
+		IUserSession $userSession, IUserConfig $userConfig, IAppConfig $appConfig,
+	): void {
 		$user = $userSession->getUser();
 		if ($user !== null) {
 			$userId = $user->getUID();
 			$container = $this->getContainer();
-			$navlinkDefault = $this->appConfig->getAppValueString('navlink_default', lazy: true);
-			if ($this->config->getUserValue($userId, self::APP_ID, 'navigation_enabled', $navlinkDefault) === '1') {
-				$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
-				$matrixUrl = $this->config->getUserValue($userId, self::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
+			$navlinkDefault = $appConfig->getAppValueString('navlink_default', lazy: true);
+			if ($userConfig->getValueString($userId, self::APP_ID, 'navigation_enabled', $navlinkDefault) === '1') {
+				$adminOauthUrl = $appConfig->getAppValueString('oauth_instance_url', lazy: true);
+				$matrixUrl = $userConfig->getValueString($userId, self::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
 				if ($matrixUrl === '') {
 					return;
 				}

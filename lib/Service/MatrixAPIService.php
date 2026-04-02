@@ -19,6 +19,7 @@ use GuzzleHttp\Exception\ServerException;
 use OC\User\NoUserException;
 use OCA\Matrix\AppInfo\Application;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\Config\IUserConfig;
 use OCP\Constants;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -26,7 +27,6 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Lock\LockedException;
@@ -48,7 +48,7 @@ class MatrixAPIService {
 		private LoggerInterface $logger,
 		private IL10N $l10n,
 		private IAppConfig $appConfig,
-		private IConfig $config,
+		private IUserConfig $config,
 		private IRootFolder $root,
 		private ShareManager $shareManager,
 		private IURLGenerator $urlGenerator,
@@ -65,7 +65,7 @@ class MatrixAPIService {
 	 */
 	public function getConfiguredMatrixUrl(string $userId): string {
 		$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
-		return $this->config->getUserValue($userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
+		return $this->config->getValueString($userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
 	}
 
 	/**
@@ -221,7 +221,7 @@ class MatrixAPIService {
 	 * @throws PreConditionNotMetException
 	 */
 	public function getMyRooms(string $userId): array {
-		$matrixUserId = $this->config->getUserValue($userId, Application::APP_ID, 'user_id');
+		$matrixUserId = $this->config->getValueString($userId, Application::APP_ID, 'user_id');
 		$filter = json_encode([
 			'room' => [
 				'state' => [
@@ -398,7 +398,7 @@ class MatrixAPIService {
 	private function uploadFile(string $userId, File $file): array {
 		$this->checkTokenExpiration($userId);
 		$matrixUrl = $this->getMatrixUrl($userId);
-		$accessToken = $this->config->getUserValue($userId, Application::APP_ID, 'token');
+		$accessToken = $this->config->getValueString($userId, Application::APP_ID, 'token');
 		$accessToken = $accessToken === '' ? '' : $this->crypto->decrypt($accessToken);
 
 		try {
@@ -564,8 +564,8 @@ class MatrixAPIService {
 	 * @throws PreConditionNotMetException
 	 */
 	private function checkTokenExpiration(string $userId): void {
-		$refreshToken = $this->config->getUserValue($userId, Application::APP_ID, 'refresh_token');
-		$expireAt = $this->config->getUserValue($userId, Application::APP_ID, 'token_expires_at');
+		$refreshToken = $this->config->getValueString($userId, Application::APP_ID, 'refresh_token');
+		$expireAt = $this->config->getValueString($userId, Application::APP_ID, 'token_expires_at');
 		if ($refreshToken !== '' && $expireAt !== '' && time() > ((int)$expireAt - 60)) {
 			$this->refreshToken($userId);
 		}
@@ -580,7 +580,7 @@ class MatrixAPIService {
 		$matrixUrl = $this->getMatrixUrl($userId);
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$clientSecret = $this->appConfig->getAppValueString('client_secret', lazy: true);
-		$refreshToken = $this->config->getUserValue($userId, Application::APP_ID, 'refresh_token');
+		$refreshToken = $this->config->getValueString($userId, Application::APP_ID, 'refresh_token');
 		$refreshToken = $refreshToken === '' ? '' : $this->crypto->decrypt($refreshToken);
 
 		if ($refreshToken === '' || $clientId === '') {
@@ -603,12 +603,12 @@ class MatrixAPIService {
 			return false;
 		}
 
-		$this->config->setUserValue($userId, Application::APP_ID, 'token', $this->crypto->encrypt($result['access_token']));
+		$this->config->setValueString($userId, Application::APP_ID, 'token', $this->crypto->encrypt($result['access_token']));
 		if (isset($result['refresh_token']) && $result['refresh_token'] !== '') {
-			$this->config->setUserValue($userId, Application::APP_ID, 'refresh_token', $this->crypto->encrypt($result['refresh_token']));
+			$this->config->setValueString($userId, Application::APP_ID, 'refresh_token', $this->crypto->encrypt($result['refresh_token']));
 		}
 		if (isset($result['expires_in'])) {
-			$this->config->setUserValue($userId, Application::APP_ID, 'token_expires_at', strval(time() + (int)$result['expires_in']));
+			$this->config->setValueString($userId, Application::APP_ID, 'token_expires_at', strval(time() + (int)$result['expires_in']));
 		}
 		return true;
 	}
