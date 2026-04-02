@@ -87,7 +87,7 @@
 							:size="24"
 							:url="option.avatar_url"
 							:display-name="option.info.type === 'room' ? 'R' : 'U'" />
-						<span v-else
+						<span
 							class="multiselect-name">
 							{{ option.info.name }}
 						</span>
@@ -297,10 +297,9 @@ export default {
 				&& this.files.length > 0
 		},
 		sortedRooms() {
-			console.debug('aaaaaaaaaa sortedRooms', this.rooms)
 			return this.rooms.slice().sort((a, b) => {
-				const nameA = a.name || ''
-				const nameB = b.name || ''
+				const nameA = a.info?.name || ''
+				const nameB = b.info?.name || ''
 				return nameA.localeCompare(nameB)
 			})
 		},
@@ -367,7 +366,10 @@ export default {
 		updateRooms() {
 			const url = generateUrl('apps/integration_matrix/rooms')
 			axios.get(url).then((response) => {
-				this.rooms = response.data
+				this.rooms = response.data.map((room) => ({
+					...room,
+					avatar_url: room.avatar_url ? this.getAvatarUrl(room.avatar_url) : '',
+				}))
 				if (this.sortedRooms.length > 0) {
 					this.selectedRoom = this.sortedRooms[0]
 				}
@@ -382,6 +384,11 @@ export default {
 				return generateUrl('/apps/theming/img/core/filetypes/folder.svg')
 			}
 			return generateUrl('/apps/integration_matrix/preview?id={fileId}&x=100&y=100', { fileId })
+		},
+		getAvatarUrl(avatarUrl) {
+			return generateUrl('/apps/integration_matrix/avatar?avatarUrl={avatarUrl}', {
+				avatarUrl,
+			})
 		},
 		fileStarted(id) {
 			this.fileStates[id] = STATES.IN_PROGRESS

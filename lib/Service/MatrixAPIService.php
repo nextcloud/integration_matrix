@@ -162,21 +162,27 @@ class MatrixAPIService {
 	 */
 	private function parseRoomInfoFromState(array $stateEvents, string $roomId, string $matrixUserId): array {
 		$roomName = '';
+		$roomAvatarUrl = '';
 		$otherJoinedMemberId = null;
 		$otherJoinedMemberDisplayname = null;
+		$otherJoinedMemberAvatarUrl = null;
 
 		foreach ($stateEvents as $event) {
 			if (($event['type'] ?? '') === 'm.room.name') {
 				$roomName = $event['content']['name'] ?? '';
-				if ($roomName !== '') {
-					return [
-						'type' => 'room',
-						'name' => $roomName . ' (' . $roomId . ')',
-						'id' => $roomId,
-					];
-				}
-				break;
 			}
+			if (($event['type'] ?? '') === 'm.room.avatar') {
+				$roomAvatarUrl = $event['content']['url'] ?? '';
+			}
+		}
+
+		if ($roomName !== '') {
+			return [
+				'type' => 'room',
+				'name' => $roomName . ' (' . $roomId . ')',
+				'id' => $roomId,
+				'avatar_url' => $roomAvatarUrl,
+			];
 		}
 
 		foreach ($stateEvents as $event) {
@@ -186,6 +192,7 @@ class MatrixAPIService {
 				if ($stateKey !== '' && $stateKey !== $matrixUserId && $membership === 'join') {
 					$otherJoinedMemberId = $stateKey;
 					$otherJoinedMemberDisplayname = $event['content']['displayname'] ?? null;
+					$otherJoinedMemberAvatarUrl = $event['content']['avatar_url'] ?? null;
 					break;
 				}
 			}
@@ -197,12 +204,14 @@ class MatrixAPIService {
 					'type' => 'dm',
 					'name' => $otherJoinedMemberDisplayname . ' (' . $otherJoinedMemberId . ')',
 					'id' => $otherJoinedMemberId,
+					'avatar_url' => $otherJoinedMemberAvatarUrl ?? '',
 				];
 			} else {
 				return [
 					'type' => 'dm',
 					'name' => $otherJoinedMemberId,
 					'id' => $otherJoinedMemberId,
+					'avatar_url' => $otherJoinedMemberAvatarUrl ?? '',
 				];
 			}
 		}
@@ -211,6 +220,7 @@ class MatrixAPIService {
 			'type' => 'room',
 			'name' => $roomId,
 			'id' => $roomId,
+			'avatar_url' => $roomAvatarUrl,
 		];
 	}
 
@@ -239,9 +249,11 @@ class MatrixAPIService {
 			$timelineEvents = $roomData['timeline']['events'] ?? [];
 			$stateEvents = $roomData['state']['events'] ?? [];
 			$allEvents = array_merge($stateEvents, $timelineEvents);
+			$roomInfo = $this->parseRoomInfoFromState($allEvents, $roomId, $matrixUserId);
 			$rooms[] = [
 				'id' => $roomId,
-				'info' => $this->parseRoomInfoFromState($allEvents, $roomId, $matrixUserId),
+				'info' => $roomInfo,
+				'avatar_url' => $roomInfo['avatar_url'] ?? '',
 			];
 		}
 		return $rooms;
@@ -253,6 +265,15 @@ class MatrixAPIService {
 	 */
 	public function getMyAvatar(string $userId): ?IResponse {
 		$avatarUrl = $this->config->getValueString($userId, Application::APP_ID, 'user_avatar_url');
+		return $this->getAvatar($userId, $avatarUrl);
+	}
+
+	/**
+	 * @param string $userId
+	 * @param string $avatarUrl
+	 * @return IResponse|null
+	 */
+	public function getAvatar(string $userId, string $avatarUrl): ?IResponse {
 		if ($avatarUrl === '') {
 			return null;
 		}

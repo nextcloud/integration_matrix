@@ -23,6 +23,7 @@ use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\Files\NotPermittedException;
+use OCP\Http\Client\IResponse;
 use OCP\IRequest;
 use OCP\Lock\LockedException;
 
@@ -53,6 +54,25 @@ class MatrixAPIController extends Controller {
 	#[NoCSRFRequired]
 	public function getUserAvatar(): Response {
 		$response = $this->matrixAPIService->getMyAvatar($this->userId);
+		return $this->buildAvatarResponse($response);
+	}
+
+	/**
+	 * @param string $avatarUrl
+	 * @return Response
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function getAvatar(string $avatarUrl): Response {
+		$response = $this->matrixAPIService->getAvatar($this->userId, $avatarUrl);
+		return $this->buildAvatarResponse($response);
+	}
+
+	/**
+	 * @param IResponse|null $response
+	 * @return Response
+	 */
+	private function buildAvatarResponse(?IResponse $response): Response {
 		if ($response === null) {
 			return new DataResponse('', Http::STATUS_NOT_FOUND);
 		}
