@@ -93,6 +93,9 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 							:size="24"
 							:url="option.avatar_url"
 							:display-name="option.info.type === 'room' ? 'R' : 'U'" />
+						<NcAvatar v-else
+							:size="24"
+							:display-name="option.info.type === 'room' ? 'R' : 'U'" />
 						<span
 							class="multiselect-name">
 							{{ option.info.name }}
@@ -471,6 +474,7 @@ export default {
 	}
 
 	.modal-title {
+		margin-top: 0;
 		display: flex;
 		justify-content: center;
 		span {
