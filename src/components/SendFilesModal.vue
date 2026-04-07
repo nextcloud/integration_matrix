@@ -133,6 +133,10 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 						class="radios"
 						@update:value="selectedPermission = $event">
 						<template #icon="{option}">
+							<component :is="option.icon"
+								v-if="option.icon" />
+						</template>
+						<template #label="{option}">
 							{{ option.label }}
 						</template>
 					</RadioElementSet>
