@@ -15,8 +15,8 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 					<MatrixIcon />
 					<span>
 						{{ sendType === SEND_TYPE.file.id
-							? n('integration_matrix', 'Send file to Matrix room', 'Send files to Matrix room', files.length)
-							: n('integration_matrix', 'Send link to Matrix room', 'Send links to Matrix room', files.length)
+							? n('integration_matrix', 'Send file to a Matrix room', 'Send files to a Matrix room', files.length)
+							: n('integration_matrix', 'Send link to a Matrix room', 'Send links to a Matrix room', files.length)
 						}}
 					</span>
 				</h2>
