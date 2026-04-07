@@ -1,4 +1,6 @@
-app_name=integration_mattermost
+# SPDX-FileCopyrightText: 2026 Nextcloud GmbH and Nextcloud contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+app_name=integration_matrix
 app_version=$(version)
 project_dir=.
 build_dir=/tmp/build

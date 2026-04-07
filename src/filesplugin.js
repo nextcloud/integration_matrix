@@ -1,12 +1,9 @@
 /*
- * Copyright (c) 2022 Julien Veyssier <julien-nc@posteo.net>
+ * SPDX-FileCopyrightText: 2026 Nextcloud GmbH and Nextcloud contributors
  *
- * This file is licensed under the Affero General Public License version 3
- * or later.
- *
- * See the COPYING-README file.
- *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
+
 import SendFilesModal from './components/SendFilesModal.vue'
 
 import axios from '@nextcloud/axios'

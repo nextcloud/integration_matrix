@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Nextcloud GmbH and Nextcloud contributors
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 # Mattermost integration into Nextcloud
 
 This integration provides a search provider for Mattermost messages, a dashboard widget

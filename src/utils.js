@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Nextcloud GmbH and Nextcloud contributors
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 import axios from '@nextcloud/axios'
 import { DialogBuilder, showError } from '@nextcloud/dialogs'
 import FileOutlineIcon from 'vue-material-design-icons/FileOutline.vue'
