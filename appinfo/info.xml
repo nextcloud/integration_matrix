@@ -16,12 +16,14 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 	<author>Julien Veyssier</author>
 	<namespace>Matrix</namespace>
 	<documentation>
-		<developer>https://github.com/julien-nc/integration_matrix</developer>
+		<developer>https://github.com/nextcloud/integration_matrix</developer>
 	</documentation>
 	<category>integration</category>
-	<website>https://github.com/julien-nc/integration_matrix</website>
-	<bugs>https://github.com/julien-nc/integration_matrix/issues</bugs>
-	<screenshot>https://raw.githubusercontent.com/julien-nc/integration_matrix/main/img/screenshot1.jpg</screenshot>
+	<website>https://github.com/nextcloud/integration_matrix</website>
+	<bugs>https://github.com/nextcloud/integration_matrix/issues</bugs>
+	<screenshot>https://raw.githubusercontent.com/nextcloud/integration_matrix/main/img/screenshot1.jpg</screenshot>
+	<screenshot>https://raw.githubusercontent.com/nextcloud/integration_matrix/main/img/screenshot2.jpg</screenshot>
+	<screenshot>https://raw.githubusercontent.com/nextcloud/integration_matrix/main/img/screenshot3.jpg</screenshot>
 	<dependencies>
 		<nextcloud min-version="33" max-version="34"/>
 	</dependencies>
