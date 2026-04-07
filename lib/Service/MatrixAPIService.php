@@ -694,7 +694,7 @@ class MatrixAPIService {
 		$parts = parse_url($mxcUri);
 		$serverName = $parts['host'] ?? '';
 		$path = $parts['path'] ?? '';
-		if (!is_string($serverName) || !is_string($path) || $serverName === '' || $path === '') {
+		if ($serverName === '' || $path === '') {
 			return null;
 		}
 
