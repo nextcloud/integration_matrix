@@ -14,14 +14,9 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 			:border-radius="borderRadius"
 			@update:checked="onUpdateValue">
 			<template #icon>
-				<slot name="icon" :option="option">
-					<component :is="option.icon"
-						v-if="option.icon" />
-				</slot>
+				<slot name="icon" :option="option" />
 			</template>
-			<slot name="label" :option="option">
-				{{ option.label }}
-			</slot>
+			<slot name="label" :option="option" />
 		</RadioElement>
 	</span>
 </template>
