@@ -25,7 +25,7 @@ on:
       - tests/**
 
 env:
-  APP_NAME: integration_mattermost
+  APP_NAME: integration_matrix
 
 jobs:
   php:
