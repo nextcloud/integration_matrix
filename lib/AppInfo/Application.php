@@ -1,11 +1,9 @@
 <?php
 
-/**
- * Nextcloud - Matrix
+/*
+ * SPDX-FileCopyrightText: 2026 Nextcloud GmbH and Nextcloud contributors
  *
- *
- * @author Julien Veyssier <julien-nc@posteo.net>
- * @copyright Julien Veyssier 2022
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Matrix\AppInfo;
@@ -43,7 +41,9 @@ class Application extends App implements IBootstrap {
 	}
 
 	public function loadFilesPlugin(
-		IUserSession $userSession, IEventDispatcher $eventDispatcher, IUserConfig $userConfig,
+		IUserSession $userSession,
+		IEventDispatcher $eventDispatcher,
+		IUserConfig $userConfig,
 	): void {
 		$user = $userSession->getUser();
 		if ($user !== null) {
@@ -57,7 +57,9 @@ class Application extends App implements IBootstrap {
 	}
 
 	public function registerNavigation(
-		IUserSession $userSession, IUserConfig $userConfig, IAppConfig $appConfig,
+		IUserSession $userSession,
+		IUserConfig $userConfig,
+		IAppConfig $appConfig,
 	): void {
 		$user = $userSession->getUser();
 		if ($user !== null) {

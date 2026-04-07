@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023-2024 Nextcloud GmbH and Nextcloud contributors
+# SPDX-License-Identifier: MIT
 name: Node Build
 
 on:
@@ -17,7 +19,7 @@ on:
       - webpack.js
 
 env:
-  APP_NAME: integration_mattermost
+  APP_NAME: integration_matrix
 
 jobs:
   build:

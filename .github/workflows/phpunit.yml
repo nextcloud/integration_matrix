@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023-2024 Nextcloud GmbH and Nextcloud contributors
+# SPDX-License-Identifier: MIT
 name: PHPUnit
 
 on:
@@ -23,7 +25,7 @@ on:
       - tests/**
 
 env:
-  APP_NAME: integration_mattermost
+  APP_NAME: integration_matrix
 
 jobs:
   php:

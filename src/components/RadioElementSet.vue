@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Nextcloud GmbH and Nextcloud contributors
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 <template>
 	<span class="option-list">
 		<RadioElement v-for="(option, optionId) in options"
