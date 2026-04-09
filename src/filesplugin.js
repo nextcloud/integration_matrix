@@ -82,7 +82,7 @@ registerFileAction(sendAction)
 function sendSelectedNodes(nodes) {
 	const formattedNodes = nodes.map((node) => {
 		return {
-			id: node.fileid,
+			id: parseInt(node.id),
 			name: node.basename,
 			type: node.type,
 			size: node.size,
@@ -127,12 +127,12 @@ async function sendFileIdsAfterOAuth(fileIdsStr, currentDir) {
 	const nodes = results.data.map((r) => resultToNode(r))
 	const fileIds = fileIdsStr.split(',')
 	const files = fileIds.map((fid) => {
-		const file = nodes.find((node) => node.fileid === parseInt(fid))
+		const file = nodes.find((node) => parseInt(node.id) === parseInt(fid))
 		if (!file) {
 			return null
 		}
 		return {
-			id: file.fileid,
+			id: parseInt(file.id),
 			name: file.basename,
 			type: file.type,
 			size: file.size,
