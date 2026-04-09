@@ -25,7 +25,6 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\PreConditionNotMetException;
-use OCP\Security\ICrypto;
 
 class ConfigController extends Controller {
 
@@ -42,7 +41,6 @@ class ConfigController extends Controller {
 		private IURLGenerator $urlGenerator,
 		private IL10N $l,
 		private IInitialState $initialStateService,
-		private ICrypto $crypto,
 		private MatrixAPIService $matrixAPIService,
 		private ?string $userId,
 	) {
@@ -164,7 +162,7 @@ class ConfigController extends Controller {
 				continue;
 			}
 			if ($key === 'token' && $value !== '') {
-				$this->userConfig->setValueString($this->userId, Application::APP_ID, $key, $this->crypto->encrypt($value));
+				$this->userConfig->setValueString($this->userId, Application::APP_ID, $key, $value, flags: IUserConfig::FLAG_SENSITIVE);
 			} elseif ($key === 'token' && $value === '') {
 				foreach (['token', 'user_id', 'user_name', 'user_displayname', 'user_avatar_url', 'refresh_token', 'token_expires_at'] as $configKey) {
 					$this->userConfig->deleteUserConfig($this->userId, Application::APP_ID, $configKey);
@@ -377,7 +375,8 @@ class ConfigController extends Controller {
 			$this->userId,
 			Application::APP_ID,
 			'token',
-			$this->crypto->encrypt($tokenResponse['access_token'])
+			$tokenResponse['access_token'],
+			flags: IUserConfig::FLAG_SENSITIVE,
 		);
 
 		$refreshToken = $tokenResponse['refresh_token'] ?? '';
@@ -386,7 +385,8 @@ class ConfigController extends Controller {
 				$this->userId,
 				Application::APP_ID,
 				'refresh_token',
-				$this->crypto->encrypt($refreshToken)
+				$refreshToken,
+				flags: IUserConfig::FLAG_SENSITIVE,
 			);
 		} else {
 			$this->userConfig->deleteUserConfig($this->userId, Application::APP_ID, 'refresh_token');

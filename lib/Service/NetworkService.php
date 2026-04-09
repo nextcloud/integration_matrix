@@ -17,7 +17,6 @@ use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\IL10N;
 use OCP\PreConditionNotMetException;
-use OCP\Security\ICrypto;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -33,7 +32,6 @@ class NetworkService {
 		IClientService $clientService,
 		private LoggerInterface $logger,
 		private IL10N $l10n,
-		private ICrypto $crypto,
 	) {
 		$this->client = $clientService->newClient();
 	}
@@ -57,7 +55,6 @@ class NetworkService {
 		bool $jsonResponse = true,
 	) {
 		$accessToken = $this->config->getValueString($userId, Application::APP_ID, 'token');
-		$accessToken = $accessToken === '' ? '' : $this->crypto->decrypt($accessToken);
 		try {
 			$url = $matrixUrl . '/_matrix/client/v3/' . $endPoint;
 			$options = [

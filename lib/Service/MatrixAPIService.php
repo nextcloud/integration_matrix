@@ -28,7 +28,6 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Lock\LockedException;
 use OCP\PreConditionNotMetException;
-use OCP\Security\ICrypto;
 use OCP\Share\IManager as ShareManager;
 use OCP\Share\IShare;
 use Psr\Log\LoggerInterface;
@@ -49,7 +48,6 @@ class MatrixAPIService {
 		private IRootFolder $root,
 		private ShareManager $shareManager,
 		private IURLGenerator $urlGenerator,
-		private ICrypto $crypto,
 		private NetworkService $networkService,
 		IClientService $clientService,
 	) {
@@ -282,7 +280,6 @@ class MatrixAPIService {
 		$this->checkTokenExpiration($userId);
 		$matrixUrl = $this->getMatrixUrl($userId);
 		$accessToken = $this->config->getValueString($userId, Application::APP_ID, 'token');
-		$accessToken = $accessToken === '' ? '' : $this->crypto->decrypt($accessToken);
 		if ($matrixUrl === '' || $accessToken === '') {
 			return null;
 		}
@@ -463,7 +460,6 @@ class MatrixAPIService {
 		$this->checkTokenExpiration($userId);
 		$matrixUrl = $this->getMatrixUrl($userId);
 		$accessToken = $this->config->getValueString($userId, Application::APP_ID, 'token');
-		$accessToken = $accessToken === '' ? '' : $this->crypto->decrypt($accessToken);
 
 		try {
 			$url = $matrixUrl . '/_matrix/media/v3/upload?filename=' . urlencode($file->getName());
@@ -645,7 +641,6 @@ class MatrixAPIService {
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$clientSecret = $this->appConfig->getAppValueString('client_secret', lazy: true);
 		$refreshToken = $this->config->getValueString($userId, Application::APP_ID, 'refresh_token');
-		$refreshToken = $refreshToken === '' ? '' : $this->crypto->decrypt($refreshToken);
 
 		if ($refreshToken === '' || $clientId === '') {
 			return false;
@@ -667,9 +662,21 @@ class MatrixAPIService {
 			return false;
 		}
 
-		$this->config->setValueString($userId, Application::APP_ID, 'token', $this->crypto->encrypt($result['access_token']));
+		$this->config->setValueString(
+			$userId,
+			Application::APP_ID,
+			'token',
+			$result['access_token'],
+			flags: IUserConfig::FLAG_SENSITIVE,
+		);
 		if (isset($result['refresh_token']) && $result['refresh_token'] !== '') {
-			$this->config->setValueString($userId, Application::APP_ID, 'refresh_token', $this->crypto->encrypt($result['refresh_token']));
+			$this->config->setValueString(
+				$userId,
+				Application::APP_ID,
+				'refresh_token',
+				$result['refresh_token'],
+				flags: IUserConfig::FLAG_SENSITIVE,
+			);
 		}
 		if (isset($result['expires_in'])) {
 			$this->config->setValueString($userId, Application::APP_ID, 'token_expires_at', strval(time() + (int)$result['expires_in']));

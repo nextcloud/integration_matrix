@@ -14,7 +14,6 @@ use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\Config\IUserConfig;
-use OCP\Security\ICrypto;
 use OCP\Settings\ISettings;
 
 class Personal implements ISettings {
@@ -23,7 +22,6 @@ class Personal implements ISettings {
 		private IAppConfig $appConfig,
 		private IUserConfig $config,
 		private IInitialState $initialStateService,
-		private ICrypto $crypto,
 		private MatrixAPIService $matrixAPIService,
 		private ?string $userId,
 	) {
@@ -34,7 +32,6 @@ class Personal implements ISettings {
 	 */
 	public function getForm(): TemplateResponse {
 		$token = $this->config->getValueString($this->userId, Application::APP_ID, 'token');
-		$token = $token === '' ? '' : $this->crypto->decrypt($token);
 		$navlinkDefault = $this->appConfig->getAppValueString('navlink_default', '0', lazy: true);
 		$navigationEnabled = $this->config->getValueString($this->userId, Application::APP_ID, 'navigation_enabled', $navlinkDefault) === '1';
 		$fileActionEnabled = $this->config->getValueString($this->userId, Application::APP_ID, 'file_action_enabled', '1') === '1';
