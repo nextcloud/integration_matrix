@@ -29,9 +29,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 				<NcNoteCard v-if="state.oauth_possible" type="info">
 					{{ t('integration_matrix', 'Connect to the administrator-provided Matrix server with OAuth.') }}
 				</NcNoteCard>
-				<NcNoteCard v-else-if="state.oauth_blocked_by_user_url" type="warning">
-					{{ t('integration_matrix', 'OAuth is only available when your Matrix server address matches the administrator-provided server or is left empty to inherit it.') }}
-				</NcNoteCard>
 				<NcTextField
 					:model-value="state.oauth_instance_url"
 					:label="t('integration_matrix', 'Matrix OAuth server URL')"

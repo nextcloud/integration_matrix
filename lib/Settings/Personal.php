@@ -46,7 +46,6 @@ class Personal implements ISettings {
 		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true) === '1';
 		$url = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'url');
 		$oauthConfigured = $oauthUrl !== '' && $clientId !== '' && $this->isAdminOauthClientCompatible($oauthUrl, $registeredClientUrl);
-		$oauthBlockedByUserUrl = $oauthConfigured && $url !== '' && !$this->matrixAPIService->sameMatrixServer($url, $oauthUrl);
 
 		$userConfig = [
 			'token' => $token !== '' ? 'dummyTokenContent' : '',
@@ -54,8 +53,7 @@ class Personal implements ISettings {
 			'oauth_instance_url' => $oauthUrl,
 			'oauth_instance_api_url' => $oauthApiUrl,
 			'oauth_configured' => $oauthConfigured,
-			'oauth_possible' => $oauthConfigured && !$oauthBlockedByUserUrl,
-			'oauth_blocked_by_user_url' => $oauthBlockedByUserUrl,
+			'oauth_possible' => $oauthConfigured,
 			'use_popup' => $usePopup,
 			'user_id' => $matrixUserId,
 			'user_name' => $matrixUserName,
