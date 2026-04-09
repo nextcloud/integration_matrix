@@ -44,7 +44,7 @@ class MatrixAPIService {
 		private LoggerInterface $logger,
 		private IL10N $l10n,
 		private IAppConfig $appConfig,
-		private IUserConfig $config,
+		private IUserConfig $userConfig,
 		private IRootFolder $root,
 		private ShareManager $shareManager,
 		private IURLGenerator $urlGenerator,
@@ -60,7 +60,7 @@ class MatrixAPIService {
 	 */
 	public function getConfiguredMatrixUrl(string $userId): string {
 		$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
-		return $this->config->getValueString($userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
+		return $this->userConfig->getValueString($userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
 	}
 
 	/**
@@ -224,7 +224,7 @@ class MatrixAPIService {
 	 * @throws PreConditionNotMetException
 	 */
 	public function getMyRooms(string $userId): array {
-		$matrixUserId = $this->config->getValueString($userId, Application::APP_ID, 'user_id');
+		$matrixUserId = $this->userConfig->getValueString($userId, Application::APP_ID, 'user_id');
 		$filter = json_encode([
 			'room' => [
 				'state' => [
@@ -258,7 +258,7 @@ class MatrixAPIService {
 	 * @return IResponse|null
 	 */
 	public function getMyAvatar(string $userId): ?IResponse {
-		$avatarUrl = $this->config->getValueString($userId, Application::APP_ID, 'user_avatar_url');
+		$avatarUrl = $this->userConfig->getValueString($userId, Application::APP_ID, 'user_avatar_url');
 		return $this->getAvatar($userId, $avatarUrl);
 	}
 
@@ -279,7 +279,7 @@ class MatrixAPIService {
 
 		$this->checkTokenExpiration($userId);
 		$matrixUrl = $this->getMatrixUrl($userId);
-		$accessToken = $this->config->getValueString($userId, Application::APP_ID, 'token');
+		$accessToken = $this->userConfig->getValueString($userId, Application::APP_ID, 'token');
 		if ($matrixUrl === '' || $accessToken === '') {
 			return null;
 		}
@@ -459,7 +459,7 @@ class MatrixAPIService {
 	private function uploadFile(string $userId, File $file): array {
 		$this->checkTokenExpiration($userId);
 		$matrixUrl = $this->getMatrixUrl($userId);
-		$accessToken = $this->config->getValueString($userId, Application::APP_ID, 'token');
+		$accessToken = $this->userConfig->getValueString($userId, Application::APP_ID, 'token');
 
 		try {
 			$url = $matrixUrl . '/_matrix/media/v3/upload?filename=' . urlencode($file->getName());
@@ -624,8 +624,8 @@ class MatrixAPIService {
 	 * @throws PreConditionNotMetException
 	 */
 	private function checkTokenExpiration(string $userId): void {
-		$refreshToken = $this->config->getValueString($userId, Application::APP_ID, 'refresh_token');
-		$expireAt = $this->config->getValueString($userId, Application::APP_ID, 'token_expires_at');
+		$refreshToken = $this->userConfig->getValueString($userId, Application::APP_ID, 'refresh_token');
+		$expireAt = $this->userConfig->getValueString($userId, Application::APP_ID, 'token_expires_at');
 		if ($refreshToken !== '' && $expireAt !== '' && time() > ((int)$expireAt - 60)) {
 			$this->refreshToken($userId);
 		}
@@ -640,7 +640,7 @@ class MatrixAPIService {
 		$matrixUrl = $this->getMatrixUrl($userId);
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$clientSecret = $this->appConfig->getAppValueString('client_secret', lazy: true);
-		$refreshToken = $this->config->getValueString($userId, Application::APP_ID, 'refresh_token');
+		$refreshToken = $this->userConfig->getValueString($userId, Application::APP_ID, 'refresh_token');
 
 		if ($refreshToken === '' || $clientId === '') {
 			return false;
@@ -662,7 +662,7 @@ class MatrixAPIService {
 			return false;
 		}
 
-		$this->config->setValueString(
+		$this->userConfig->setValueString(
 			$userId,
 			Application::APP_ID,
 			'token',
@@ -670,7 +670,7 @@ class MatrixAPIService {
 			flags: IUserConfig::FLAG_SENSITIVE,
 		);
 		if (isset($result['refresh_token']) && $result['refresh_token'] !== '') {
-			$this->config->setValueString(
+			$this->userConfig->setValueString(
 				$userId,
 				Application::APP_ID,
 				'refresh_token',
@@ -679,7 +679,7 @@ class MatrixAPIService {
 			);
 		}
 		if (isset($result['expires_in'])) {
-			$this->config->setValueString($userId, Application::APP_ID, 'token_expires_at', strval(time() + (int)$result['expires_in']));
+			$this->userConfig->setValueString($userId, Application::APP_ID, 'token_expires_at', strval(time() + (int)$result['expires_in']));
 		}
 		return true;
 	}

@@ -28,7 +28,7 @@ class NetworkService {
 	private IClient $client;
 
 	public function __construct(
-		private IUserConfig $config,
+		private IUserConfig $userConfig,
 		IClientService $clientService,
 		private LoggerInterface $logger,
 		private IL10N $l10n,
@@ -54,7 +54,7 @@ class NetworkService {
 		string $method = 'GET',
 		bool $jsonResponse = true,
 	) {
-		$accessToken = $this->config->getValueString($userId, Application::APP_ID, 'token');
+		$accessToken = $this->userConfig->getValueString($userId, Application::APP_ID, 'token');
 		try {
 			$url = $matrixUrl . '/_matrix/client/v3/' . $endPoint;
 			$options = [
