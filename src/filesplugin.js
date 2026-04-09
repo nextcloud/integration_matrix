@@ -11,7 +11,12 @@ import moment from '@nextcloud/moment'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
-import { gotoSettingsConfirmDialog, oauthConnect, oauthConnectConfirmDialog, SEND_TYPE } from './utils.js'
+import {
+	gotoSettingsConfirmDialog,
+	oauthConnect,
+	oauthConnectConfirmDialog,
+	SEND_TYPE,
+} from './utils.js'
 import { registerFileAction, Permission } from '@nextcloud/files'
 import {
 	defaultRootPath,
@@ -142,7 +147,10 @@ async function sendFileIdsAfterOAuth(fileIdsStr, currentDir) {
 function connectToMatrix(selectedFiles = []) {
 	oauthConnectConfirmDialog(OCA.Matrix.oauthInstanceUrl || OCA.Matrix.matrixUrl).then(() => {
 		const selectedFilesIds = selectedFiles.map((file) => file.id)
-		const currentDirectory = OCA.Matrix.currentFileList?.folder?.attributes?.filename ?? '/'
+		// it used to work like that but the default root path (/files/USER_ID) is now included in filename
+		// const currentDirectory = OCA.Matrix.currentFileList?.folder?.attributes?.filename ?? '/'
+		// the path is what we want, this is the path relative to the storage root
+		const currentDirectory = OCA.Matrix.currentFileList?.folder?.path ?? '/'
 		const oauthOrigin = 'files--' + currentDirectory + '--' + selectedFilesIds.join(',')
 		oauthConnect(oauthOrigin, OCA.Matrix.usePopup).then(() => {
 			if (OCA.Matrix.usePopup) {
