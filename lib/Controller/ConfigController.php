@@ -61,7 +61,7 @@ class ConfigController extends Controller {
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true) === '1';
 		$registeredClientUrl = $this->appConfig->getAppValueString('registered_client_url', lazy: true);
-		$oauthPossible = $this->isOAuthPossibleForUserUrl($userMatrixUrl, $adminOauthUrl, $clientId, $registeredClientUrl);
+		$oauthPossible = $this->isOAuthPossible($adminOauthUrl, $clientId, $registeredClientUrl);
 
 		return new DataResponse([
 			'connected' => $matrixUrl !== '' && $token !== '',
@@ -101,21 +101,15 @@ class ConfigController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function startOauth(string $oauthOrigin = 'settings'): DataResponse {
-		$matrixUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
+		$oauthMatrixUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$registeredClientUrl = $this->appConfig->getAppValueString('registered_client_url', lazy: true);
-		$userMatrixUrl = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'url');
 
-		if ($matrixUrl === '' || $clientId === '' || !$this->isAdminOauthClientCompatible($matrixUrl, $registeredClientUrl)) {
+		if ($oauthMatrixUrl === '' || $clientId === '' || !$this->isAdminOauthClientCompatible($oauthMatrixUrl, $registeredClientUrl)) {
 			return new DataResponse(['error' => $this->l->t('OAuth is not configured')], Http::STATUS_BAD_REQUEST);
 		}
-		if (!$this->isUserAllowedToUseAdminOauth($userMatrixUrl, $matrixUrl)) {
-			return new DataResponse([
-				'error' => $this->l->t('OAuth is only available when your Matrix server address matches the administrator-provided server or is left empty'),
-			], Http::STATUS_BAD_REQUEST);
-		}
 
-		$authMetadata = $this->matrixAPIService->getAuthMetadata($matrixUrl);
+		$authMetadata = $this->matrixAPIService->getAuthMetadata($oauthMatrixUrl);
 		if (isset($authMetadata['error'])) {
 			return new DataResponse($authMetadata, Http::STATUS_BAD_REQUEST);
 		}
@@ -126,7 +120,7 @@ class ConfigController extends Controller {
 		}
 
 		$redirectUri = $this->urlGenerator->getAbsoluteURL(
-			$this->urlGenerator->linkToRoute('integration_matrix.config.oauthRedirect')
+			$this->urlGenerator->linkToRoute(Application::APP_ID . '.config.oauthRedirect')
 		);
 		$deviceId = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'oauth_device_id');
 		if ($deviceId === '') {
@@ -460,12 +454,11 @@ class ConfigController extends Controller {
 		);
 	}
 
-	private function isOAuthPossibleForUserUrl(string $userMatrixUrl, string $adminOauthUrl, string $clientId, string $registeredClientUrl): bool {
+	private function isOAuthPossible(string $adminOauthUrl, string $clientId, string $registeredClientUrl): bool {
 		if ($adminOauthUrl === '' || $clientId === '' || !$this->isAdminOauthClientCompatible($adminOauthUrl, $registeredClientUrl)) {
 			return false;
 		}
-
-		return $this->isUserAllowedToUseAdminOauth($userMatrixUrl, $adminOauthUrl);
+		return true;
 	}
 
 	private function isAdminOauthClientCompatible(string $adminOauthUrl, string $registeredClientUrl): bool {
@@ -474,10 +467,6 @@ class ConfigController extends Controller {
 		}
 
 		return $this->matrixAPIService->sameMatrixServer($registeredClientUrl, $adminOauthUrl);
-	}
-
-	private function isUserAllowedToUseAdminOauth(string $userMatrixUrl, string $adminOauthUrl): bool {
-		return $userMatrixUrl === '' || $this->matrixAPIService->sameMatrixServer($userMatrixUrl, $adminOauthUrl);
 	}
 
 	private function generateOauthDeviceId(): string {
