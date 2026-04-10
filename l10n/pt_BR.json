@@ -1,0 +1,26 @@
+{ "translations": {
+    "Matrix" : "Matrix",
+    "Error during OAuth exchanges" : "Erro durante trocas OAuth",
+    "Error getting OAuth access token." : "Erro ao obter o token de acesso OAuth.",
+    "Bad credentials" : "Credenciais inválidas",
+    "OAuth access token refused" : "Token de acesso OAuth recusado",
+    "Bad HTTP method" : "Método HTTP incorreto",
+    "Invalid access token" : "Token de acesso inválido",
+    "Connected as {user}" : "Conectado como {user}",
+    "Disconnect" : "Desconectar",
+    "Access token" : "Token de acesso",
+    "Message to send with the files" : "Mensagem para enviar com os arquivos",
+    "View only" : "Somente visualização",
+    "Files" : "Arquivos",
+    "Room" : "Espaço",
+    "Set expiration date" : "Definir data de expiração",
+    "Expires on" : "Expira em",
+    "Directories will be skipped, they can only be sent as links." : "Os diretórios serão ignorados, eles só podem ser enviados como links.",
+    "_Send file_::_Send files_" : ["Enviar arquivo","Enviar arquivos","Enviar arquivos"],
+    "_Send link_::_Send links_" : ["Enviar link","Enviar links","Enviar links"],
+    "Go to settings" : "Vá para as configurações",
+    "Upload files" : "Fazer upload de arquivos",
+    "Public links" : "Links públicos",
+    "Internal links (Only works for users with access to the files)" : "Links internos (Só funciona para usuários com acesso aos arquivos)"
+},"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
+}

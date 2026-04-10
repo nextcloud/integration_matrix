@@ -1,0 +1,8 @@
+{ "translations": {
+    "Disconnect" : "Shkëputu",
+    "Edit" : "Përpuno",
+    "Files" : "Skedarë",
+    "Room" : "Dhomë",
+    "Set expiration date" : "Caktoni datë skadimi"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

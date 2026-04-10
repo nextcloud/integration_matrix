@@ -1,0 +1,15 @@
+OC.L10N.register(
+    "integration_matrix",
+    {
+    "Bad credentials" : "Nederīgi pieteikšanās dati",
+    "Bad HTTP method" : "Nederīgs HTTP pieprasījuma veids",
+    "Connected as {user}" : "Savienojies kā {user}",
+    "Access token" : "Piekļuves pilnvara",
+    "View only" : "Tikai skatīt",
+    "Files" : "Datnes",
+    "Room" : "Istaba",
+    "Set expiration date" : "Iestatīt beigu datumu",
+    "_Send file_::_Send files_" : ["Nosūtīt datnes","Nosūtīt datni","Nosūtīt datnes"],
+    "Upload files" : "Augšupielādēt datnes"
+},
+"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");

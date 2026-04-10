@@ -1,0 +1,7 @@
+{ "translations": {
+    "Bad credentials" : "Marrits identificants",
+    "Connected as {user}" : "Connectat coma {user}",
+    "View only" : "Veire solament",
+    "Set expiration date" : "Especificar una data d'expiracion"
+},"pluralForm" :"nplurals=2; plural=(n > 1);"
+}

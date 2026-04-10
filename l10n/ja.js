@@ -1,0 +1,13 @@
+OC.L10N.register(
+    "integration_matrix",
+    {
+    "Error during OAuth exchanges" : "OAuth 通信中のエラー",
+    "Bad credentials" : "不正な資格情報",
+    "Bad HTTP method" : "不正なHTTPメソッド",
+    "Connected as {user}" : "{user} に接続済み",
+    "Access token" : "アクセストークン",
+    "View only" : "閲覧のみ",
+    "Files" : "ファイル",
+    "Room" : "部屋"
+},
+"nplurals=1; plural=0;");

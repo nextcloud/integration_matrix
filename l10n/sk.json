@@ -1,0 +1,26 @@
+{ "translations": {
+    "Error during OAuth exchanges" : "Chyba počas výmeny OAuth",
+    "Error getting OAuth access token." : "Chyba pri získavaní prístupového tokenu OAuth.",
+    "Bad credentials" : "Nesprávne prihlasovacie údaje",
+    "OAuth access token refused" : "Prístupový token OAuth bol zamietnutý",
+    "Bad HTTP method" : "Zlá metóda HTTP",
+    "Invalid access token" : "Nesprávny prístupový token",
+    "Connected as {user}" : "Pripojený ako {user}",
+    "Disconnect" : "Odpojiť",
+    "Access token" : "Prístupový token",
+    "Message to send with the files" : "Správa ktorá bude odoslaná so súbormi",
+    "View only" : "Iba pre čítanie",
+    "Edit" : "Upraviť",
+    "Files" : "Súbory",
+    "Room" : "Miestnosť",
+    "Set expiration date" : "Nastaviť dátum expirácie",
+    "Expires on" : "Koniec platnosti",
+    "Directories will be skipped, they can only be sent as links." : "Adresáre budú preskočené, môžu byť odoslané iba ako odkaz.",
+    "_Send file_::_Send files_" : ["Odoslať súbor","Odoslať súbory","Odoslať súbory","Odoslať súbory"],
+    "_Send link_::_Send links_" : ["Odoslať odkaz","Odoslať odkazy","Odoslať odkaz","Odoslať odkazy"],
+    "Go to settings" : "Prejsť do nastavení",
+    "Upload files" : "Nahrať súbory",
+    "Public links" : "Verejné odkazy",
+    "Internal links (Only works for users with access to the files)" : "Interné odkazy (funguje iba pre užívateľov s prístupom k súborom)"
+},"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);"
+}

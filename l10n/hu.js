@@ -1,0 +1,18 @@
+OC.L10N.register(
+    "integration_matrix",
+    {
+    "Error during OAuth exchanges" : "Hiba történt az OAuth üzenetváltás során",
+    "Bad credentials" : "Hibás hitelesítő adatok",
+    "Bad HTTP method" : "Hibás HTTP metódus",
+    "Connected as {user}" : "Kapcsolódva mint {user}",
+    "Access token" : "Hozzáférési token",
+    "Message to send with the files" : "A fájlokkal küldendő üzenet",
+    "View only" : "Csak megtekintés",
+    "Files" : "Fájlok",
+    "Room" : "Szoba",
+    "Directories will be skipped, they can only be sent as links." : "A könyvtárak ki lesznek hagyva, csak hivatkozásként küldhetők el.",
+    "_Send link_::_Send links_" : ["Hivatkozás küldése","Hivatkozások küldése"],
+    "Go to settings" : "Ugrás a beállításokhoz",
+    "Internal links (Only works for users with access to the files)" : "Belső hivatkozások (Csak a fájlokhoz hozzáférő felhasználók esetén működik)"
+},
+"nplurals=2; plural=(n != 1);");
