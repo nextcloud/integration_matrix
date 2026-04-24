@@ -97,7 +97,7 @@ export function gotoSettingsConfirmDialog() {
 		.setText(
 			t('integration_matrix', 'You need to connect to a Matrix server before using the Matrix integration.')
 			+ ' --- '
-			+ t('integration_matrix', 'Do you want to go to your "Connected accounts" personal settings?'),
+			+ t('integration_matrix', 'Do you want to go to "Connected accounts" in your personal settings?'),
 		)
 		.setButtons([
 			{

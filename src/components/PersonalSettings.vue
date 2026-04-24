@@ -195,7 +195,7 @@ export default {
 		const urlParams = new URLSearchParams(window.location.search.substr(1))
 		const matrixToken = urlParams.get('matrixToken')
 		if (matrixToken === 'success') {
-			showSuccess(t('integration_matrix', 'Successfully connected to Matrix!'))
+			showSuccess(t('integration_matrix', 'Connected to Matrix!'))
 		} else if (matrixToken === 'error') {
 			showError(t('integration_matrix', 'Error connecting to Matrix:') + ' ' + (urlParams.get('message') ?? ''))
 		}
@@ -239,7 +239,7 @@ export default {
 					this.state.user_name = data.userName
 					this.state.user_displayname = data.userDisplayName
 					this.state.user_avatar_set = !!data.userAvatarSet
-					showSuccess(t('integration_matrix', 'Successfully connected to Matrix!'))
+					showSuccess(t('integration_matrix', 'Connected to Matrix!'))
 				}
 			}).catch((error) => {
 				console.error(error)
@@ -257,7 +257,7 @@ export default {
 							this.errorMessage = t('integration_matrix', 'Invalid access token')
 							this.state.token = ''
 						} else {
-							showSuccess(t('integration_matrix', 'Successfully connected to Matrix!'))
+							showSuccess(t('integration_matrix', 'Connected to Matrix!'))
 							this.state.token = 'dummyTokenContent'
 							this.state.user_id = response.data.user_id
 							this.state.user_name = response.data.user_name
