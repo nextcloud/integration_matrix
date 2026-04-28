@@ -58,9 +58,7 @@ function openRoomSelector(files) {
 const sendAction = {
 	id: 'matrixSend',
 	displayName: ({ nodes }) => {
-		return nodes.length > 1
-			? t('integration_matrix', 'Send files to Matrix')
-			: t('integration_matrix', 'Send file to Matrix')
+		return n('integration_matrix', 'Send file to Matrix', 'Send files to Matrix', nodes.length)
 	},
 	enabled({ nodes, view }) {
 		return !OCA.Matrix.actionIgnoreLists.includes(view.id)
@@ -181,11 +179,10 @@ function sendPublicLinks(roomId, roomName, comment, permission, expirationDate, 
 		showSuccess(
 			n(
 				'integration_matrix',
-				'A link to {fileName} was sent to {roomName}',
+				'{number} link was sent to {roomName}',
 				'{number} links were sent to {roomName}',
 				number,
 				{
-					fileName: OCA.Matrix.filesToSend[0].name,
 					roomName,
 					number,
 				},
@@ -214,11 +211,10 @@ function sendInternalLinks(roomId, roomName, comment) {
 		showSuccess(
 			n(
 				'integration_matrix',
-				'A link to {fileName} was sent to {roomName}',
+				'{number} link was sent to {roomName}',
 				'{number} links were sent to {roomName}',
 				number,
 				{
-					fileName: OCA.Matrix.filesToSend[0].name,
 					roomName,
 					number,
 				},

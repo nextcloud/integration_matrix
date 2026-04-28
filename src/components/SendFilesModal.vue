@@ -185,7 +185,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 					class="warning-container">
 					<AlertBoxOutlineIcon class="warning-icon" />
 					<label>
-						{{ t('integration_matrix', 'Directories will be skipped, they can only be sent as links.') }}
+						{{ t('integration_matrix', 'Folders will be skipped, they can only be sent as links.') }}
 					</label>
 				</span>
 				<div class="matrix-footer">
@@ -287,7 +287,7 @@ export default {
 			expirationDate: null,
 			passwordEnabled: false,
 			password: '',
-			passwordPlaceholder: t('integration_matrix', 'password'),
+			passwordPlaceholder: t('integration_matrix', 'Password'),
 			STATES,
 			commentPlaceholder: t('integration_matrix', 'Message to send with the files'),
 			permissionOptions: {
