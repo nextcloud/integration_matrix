@@ -7,8 +7,8 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 <template>
 	<div id="matrix_prefs" class="section">
 		<h2>
-			<MatrixIcon class="icon" />
-			{{ t('integration_matrix', 'Matrix integration') }}
+			<ElementIcon class="icon" />
+			{{ t('integration_matrix', 'Element/Matrix integration') }}
 		</h2>
 		<div id="matrix-content">
 			<div v-if="connected" class="line connected-line">
@@ -108,7 +108,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 				<NcFormBoxSwitch
 					v-model="state.file_action_enabled"
 					@update:model-value="onCheckboxChanged($event, 'file_action_enabled')">
-					{{ t('integration_matrix', 'Add file action to send files to Matrix rooms') }}
+					{{ t('integration_matrix', 'Add file action to send files to Element/Matrix rooms') }}
 				</NcFormBoxSwitch>
 				<NcFormBoxSwitch
 					v-model="state.navigation_enabled"
@@ -129,7 +129,7 @@ import EyeOffIcon from 'vue-material-design-icons/EyeOff.vue'
 import KeyIcon from 'vue-material-design-icons/Key.vue'
 import OpenInNewIcon from 'vue-material-design-icons/OpenInNew.vue'
 
-import MatrixIcon from './icons/MatrixIcon.vue'
+import ElementIcon from './icons/ElementIcon.vue'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcFormBox from '@nextcloud/vue/components/NcFormBox'
@@ -155,7 +155,7 @@ export default {
 		EyeIcon,
 		EyeOffIcon,
 		KeyIcon,
-		MatrixIcon,
+		ElementIcon,
 		NcButton,
 		NcFormBox,
 		NcFormBoxSwitch,

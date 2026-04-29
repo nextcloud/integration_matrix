@@ -7,8 +7,8 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 <template>
 	<div id="matrix_prefs" class="section">
 		<h2>
-			<MatrixIcon class="icon" />
-			{{ t('integration_matrix', 'Matrix integration') }}
+			<ElementIcon class="icon" />
+			{{ t('integration_matrix', 'Element/Matrix integration') }}
 		</h2>
 		<div id="matrix-content">
 			<NcNoteCard type="info">
@@ -96,7 +96,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 import EarthIcon from 'vue-material-design-icons/Earth.vue'
 import KeyOutlineIcon from 'vue-material-design-icons/KeyOutline.vue'
 
-import MatrixIcon from './icons/MatrixIcon.vue'
+import ElementIcon from './icons/ElementIcon.vue'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcFormBox from '@nextcloud/vue/components/NcFormBox'
@@ -118,7 +118,7 @@ export default {
 	components: {
 		EarthIcon,
 		KeyOutlineIcon,
-		MatrixIcon,
+		ElementIcon,
 		NcButton,
 		NcFormBox,
 		NcFormBoxSwitch,

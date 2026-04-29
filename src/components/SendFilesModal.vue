@@ -12,11 +12,11 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 			@close="closeModal">
 			<div class="matrix-modal-content">
 				<h2 class="modal-title">
-					<MatrixIcon />
+					<ElementIcon />
 					<span>
 						{{ sendType === SEND_TYPE.file.id
-							? n('integration_matrix', 'Send file to a Matrix room', 'Send files to a Matrix room', files.length)
-							: n('integration_matrix', 'Send link to a Matrix room', 'Send links to a Matrix room', files.length)
+							? n('integration_matrix', 'Send file to an Element/Matrix room', 'Send files to an Element/Matrix room', files.length)
+							: n('integration_matrix', 'Send link to an Element/Matrix room', 'Send links to an Element/Matrix room', files.length)
 						}}
 					</span>
 				</h2>
@@ -56,7 +56,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 					</div>
 				</div>
 				<span class="field-label">
-					<MatrixIcon :size="20" />
+					<ElementIcon :size="20" />
 					<span>
 						<strong>
 							{{ t('integration_matrix', 'Room') }}
@@ -213,15 +213,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 </template>
 
 <script>
-import NcAvatar from '@nextcloud/vue/components/NcAvatar'
-import NcButton from '@nextcloud/vue/components/NcButton'
-import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
-import NcDateTimePicker from '@nextcloud/vue/components/NcDateTimePicker'
-import NcHighlight from '@nextcloud/vue/components/NcHighlight'
-import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
-import NcModal from '@nextcloud/vue/components/NcModal'
-import NcSelect from '@nextcloud/vue/components/NcSelect'
-
 import AlertBoxOutlineIcon from 'vue-material-design-icons/AlertBoxOutline.vue'
 import CheckCircleOutlineIcon from 'vue-material-design-icons/CheckCircleOutline.vue'
 import CloseIcon from 'vue-material-design-icons/Close.vue'
@@ -232,13 +223,24 @@ import UploadBoxOutlineIcon from 'vue-material-design-icons/UploadBoxOutline.vue
 import PencilOutlineIcon from 'vue-material-design-icons/PencilOutline.vue'
 import SendOutlineIcon from 'vue-material-design-icons/SendOutline.vue'
 
+import ElementIcon from './icons/ElementIcon.vue'
+
+import NcAvatar from '@nextcloud/vue/components/NcAvatar'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
+import NcDateTimePicker from '@nextcloud/vue/components/NcDateTimePicker'
+import NcHighlight from '@nextcloud/vue/components/NcHighlight'
+import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+import NcModal from '@nextcloud/vue/components/NcModal'
+import NcSelect from '@nextcloud/vue/components/NcSelect'
+
+import RadioElementSet from './RadioElementSet.vue'
+
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { FileType } from '@nextcloud/files'
 import { generateUrl } from '@nextcloud/router'
 import { humanFileSize, SEND_TYPE } from '../utils.js'
-import MatrixIcon from './icons/MatrixIcon.vue'
-import RadioElementSet from './RadioElementSet.vue'
 
 const STATES = {
 	IN_PROGRESS: 1,
@@ -249,7 +251,7 @@ export default {
 	name: 'SendFilesModal',
 
 	components: {
-		MatrixIcon,
+		ElementIcon,
 		NcSelect,
 		NcCheckboxRadioSwitch,
 		NcDateTimePicker,

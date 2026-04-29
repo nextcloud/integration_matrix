@@ -8,8 +8,8 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 <info>
 	<id>integration_matrix</id>
-	<name>Matrix integration</name>
-	<summary>Integration of Matrix</summary>
+	<name>Element/Matrix integration</name>
+	<summary>Integration of Element/Matrix</summary>
 	<description><![CDATA[Matrix integration lets you send files from Nextcloud Files to Matrix rooms.]]></description>
 	<version>1.0.0</version>
 	<licence>agpl</licence>

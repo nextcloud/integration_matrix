@@ -25,7 +25,7 @@ import {
 	resultToNode,
 } from '@nextcloud/files/dav'
 import { subscribe } from '@nextcloud/event-bus'
-import MatrixIcon from '../img/app.svg'
+import ElementIcon from '../img/app.svg'
 
 import { createApp } from 'vue'
 
@@ -58,14 +58,14 @@ function openRoomSelector(files) {
 const sendAction = {
 	id: 'matrixSend',
 	displayName: ({ nodes }) => {
-		return n('integration_matrix', 'Send file to Matrix', 'Send files to Matrix', nodes.length)
+		return n('integration_matrix', 'Send file to Element/Matrix', 'Send files to Element/Matrix', nodes.length)
 	},
 	enabled({ nodes, view }) {
 		return !OCA.Matrix.actionIgnoreLists.includes(view.id)
 			&& nodes.length > 0
 			&& !nodes.some(({ permissions }) => (permissions & Permission.READ) === 0)
 	},
-	iconSvgInline: () => MatrixIcon,
+	iconSvgInline: () => ElementIcon,
 	async exec({ nodes }) {
 		sendSelectedNodes([nodes[0]])
 		return null

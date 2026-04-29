@@ -4,19 +4,19 @@ SPDX-FileCopyrightText: 2026 Nextcloud GmbH and Nextcloud contributors
 SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 
-# Matrix integration into Nextcloud
+# Element/Matrix integration into Nextcloud
 
-This integration lets you send files to a Matrix conversation directly from Nextcloud Files.
+This integration lets you send files to an Element/Matrix conversation directly from Nextcloud Files.
 
 ## 🔧 Configuration
 
 ### User settings
 
 The account configuration happens in the "Connected accounts" user settings section.
-It requires to get the personal access token in your Matrix settings.
+It requires to get a personal access token in your Element settings.
 
 A link to the "Connected accounts" user settings section will be displayed in the widget
-for users who didn't configure a Matrix account.
+for users who didn't configure an Element/Matrix account.
 
 ### Admin settings
 
