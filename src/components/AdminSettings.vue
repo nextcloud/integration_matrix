@@ -82,11 +82,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 					@update:model-value="onUsePopupChanged">
 					{{ t('integration_matrix', 'Use a pop-up for OAuth login') }}
 				</NcFormBoxSwitch>
-				<NcFormBoxSwitch
-					v-model="state.navlink_default"
-					@update:model-value="onNavlinkDefaultChanged">
-					{{ t('integration_matrix', 'Enable navigation link as default for all users') }}
-				</NcFormBoxSwitch>
 			</NcFormBox>
 		</div>
 	</div>
@@ -147,9 +142,6 @@ export default {
 		},
 		onUsePopupChanged(newValue) {
 			this.saveOptions({ use_popup: newValue ? '1' : '0' }, false)
-		},
-		onNavlinkDefaultChanged(newValue) {
-			this.saveOptions({ navlink_default: newValue ? '1' : '0' }, false)
 		},
 		onInput() {
 			this.state.oauth_instance_api_url = ''

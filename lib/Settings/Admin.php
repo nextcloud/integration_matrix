@@ -34,7 +34,6 @@ class Admin implements ISettings {
 		$oauthApiUrl = $this->appConfig->getAppValueString('oauth_instance_api_url', lazy: true);
 		$registeredClientApiUrl = $this->appConfig->getAppValueString('registered_client_api_url', lazy: true);
 		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true);
-		$navlinkDefault = $this->appConfig->getAppValueString('navlink_default', '0', lazy: true);
 
 		$adminConfig = [
 			'client_id' => $clientId,
@@ -43,7 +42,6 @@ class Admin implements ISettings {
 			'oauth_instance_api_url' => $oauthApiUrl,
 			'registered_client_api_url' => $registeredClientApiUrl,
 			'use_popup' => $usePopup === '1',
-			'navlink_default' => ($navlinkDefault === '1'),
 		];
 		$this->initialStateService->provideInitialState('admin-config', $adminConfig);
 		return new TemplateResponse(Application::APP_ID, 'adminSettings');
