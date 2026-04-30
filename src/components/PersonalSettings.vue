@@ -25,8 +25,8 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 				</NcButton>
 			</div>
 
-			<div v-if="state.oauth_configured" class="auth-block">
-				<NcNoteCard v-if="state.oauth_possible" type="info">
+			<div v-if="state.oauth_possible" class="auth-block">
+				<NcNoteCard type="info">
 					{{ t('integration_matrix', 'Connect to the administrator-provided Matrix server with OAuth.') }}
 				</NcNoteCard>
 				<NcTextField
@@ -38,7 +38,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 					</template>
 				</NcTextField>
 				<NcButton
-					v-if="!connected && state.oauth_possible"
+					v-if="!connected"
 					type="primary"
 					:loading="oauthLoading"
 					@click="connectWithOauth">
@@ -109,11 +109,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 					v-model="state.file_action_enabled"
 					@update:model-value="onCheckboxChanged($event, 'file_action_enabled')">
 					{{ t('integration_matrix', 'Add file action to send files to Element/Matrix rooms') }}
-				</NcFormBoxSwitch>
-				<NcFormBoxSwitch
-					v-model="state.navigation_enabled"
-					@update:model-value="onNavigationChange">
-					{{ t('integration_matrix', 'Enable navigation link (link to Matrix with a top menu item)') }}
 				</NcFormBoxSwitch>
 			</NcFormBox>
 		</div>
@@ -216,9 +211,6 @@ export default {
 		},
 		onCheckboxChanged(newValue, key) {
 			this.saveOptions({ [key]: newValue ? '1' : '0' }, false)
-		},
-		onNavigationChange(newValue) {
-			this.saveOptions({ navigation_enabled: newValue ? '1' : '0' }, false)
 		},
 		connectWithToken() {
 			if (!this.effectiveMatrixUrl || !this.accessToken) {

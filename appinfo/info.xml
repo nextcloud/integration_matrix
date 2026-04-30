@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 	<name>Element/Matrix integration</name>
 	<summary>Integration of Element/Matrix</summary>
 	<description><![CDATA[Matrix integration lets you send files from Nextcloud Files to Matrix rooms.]]></description>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<licence>agpl</licence>
 	<author>Julien Veyssier</author>
 	<namespace>Matrix</namespace>

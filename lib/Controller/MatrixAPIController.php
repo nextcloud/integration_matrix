@@ -40,7 +40,7 @@ class MatrixAPIController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function getMatrixUrl(): DataResponse {
-		return new DataResponse($this->matrixAPIService->getMatrixUrl($this->userId));
+		return new DataResponse($this->matrixAPIService->getUserMatrixApiUrl($this->userId));
 	}
 
 	/**
