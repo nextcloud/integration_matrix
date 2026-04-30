@@ -33,7 +33,6 @@ class Personal implements ISettings {
 	public function getForm(): TemplateResponse {
 		$token = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'token');
 		$navlinkDefault = $this->appConfig->getAppValueString('navlink_default', '0', lazy: true);
-		$navigationEnabled = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'navigation_enabled', $navlinkDefault) === '1';
 		$fileActionEnabled = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'file_action_enabled', '1') === '1';
 		$matrixUserId = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'user_id');
 		$matrixUserName = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'user_name');
@@ -61,7 +60,6 @@ class Personal implements ISettings {
 			'user_name' => $matrixUserName,
 			'user_displayname' => $matrixUserDisplayName,
 			'user_avatar_set' => $userAvatarSet,
-			'navigation_enabled' => $navigationEnabled,
 			'file_action_enabled' => $fileActionEnabled,
 		];
 		$this->initialStateService->provideInitialState('user-config', $userConfig);

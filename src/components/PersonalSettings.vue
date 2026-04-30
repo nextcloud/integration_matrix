@@ -110,11 +110,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 					@update:model-value="onCheckboxChanged($event, 'file_action_enabled')">
 					{{ t('integration_matrix', 'Add file action to send files to Element/Matrix rooms') }}
 				</NcFormBoxSwitch>
-				<NcFormBoxSwitch
-					v-model="state.navigation_enabled"
-					@update:model-value="onNavigationChange">
-					{{ t('integration_matrix', 'Enable navigation link (link to Matrix with a top menu item)') }}
-				</NcFormBoxSwitch>
 			</NcFormBox>
 		</div>
 	</div>
@@ -216,9 +211,6 @@ export default {
 		},
 		onCheckboxChanged(newValue, key) {
 			this.saveOptions({ [key]: newValue ? '1' : '0' }, false)
-		},
-		onNavigationChange(newValue) {
-			this.saveOptions({ navigation_enabled: newValue ? '1' : '0' }, false)
 		},
 		connectWithToken() {
 			if (!this.effectiveMatrixUrl || !this.accessToken) {

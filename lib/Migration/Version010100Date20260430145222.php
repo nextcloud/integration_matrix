@@ -9,9 +9,9 @@ declare(strict_types=1);
 namespace OCA\Matrix\Migration;
 
 use Closure;
+use OCA\Matrix\AppInfo\Application;
 use OCP\Config\IUserConfig;
 use OCP\IAppConfig;
-use OCA\Matrix\AppInfo\Application;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
