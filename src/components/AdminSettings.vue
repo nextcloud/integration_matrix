@@ -46,7 +46,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 			</NcButton>
 
 			<NcNoteCard v-if="hasRegisteredClientMismatch" type="warning">
-				{{ t('integration_matrix', 'The stored OAuth client was registered for {matrixUrl}. Register a new client for the currently selected server to enable OAuth again.', { matrixUrl: state.registered_client_url }) }}
+				{{ t('integration_matrix', 'The stored OAuth client was registered for {matrixUrl}. Register a new client for the currently selected server to enable OAuth again.', { matrixUrl: state.registered_client_api_url }) }}
 			</NcNoteCard>
 
 			<NcTextField
@@ -137,7 +137,7 @@ export default {
 
 	computed: {
 		hasRegisteredClientMismatch() {
-			return !!this.state.registered_client_url && !!this.state.oauth_instance_api_url && this.normalizeUrl(this.state.registered_client_url) !== this.normalizeUrl(this.state.oauth_instance_api_url)
+			return !!this.state.registered_client_api_url && !!this.state.oauth_instance_api_url && this.normalizeUrl(this.state.registered_client_api_url) !== this.normalizeUrl(this.state.oauth_instance_api_url)
 		},
 	},
 
@@ -160,7 +160,7 @@ export default {
 			}, 500)()
 		},
 		onClientIdInput() {
-			this.state.registered_client_url = ''
+			this.state.registered_client_api_url = ''
 			delay(() => {
 				this.saveOptions({
 					oauth_instance_url: this.normalizeUrl(this.state.oauth_instance_url),
@@ -169,7 +169,7 @@ export default {
 			}, 500)()
 		},
 		onSecretInput() {
-			this.state.registered_client_url = ''
+			this.state.registered_client_api_url = ''
 			delay(() => {
 				const values = {
 					client_secret: this.state.client_secret,
@@ -198,7 +198,7 @@ export default {
 				this.state.oauth_instance_api_url = response.data.oauth_instance_api_url
 				this.state.client_id = response.data.client_id
 				this.state.client_secret = response.data.client_secret
-				this.state.registered_client_url = response.data.registered_client_url
+				this.state.registered_client_api_url = response.data.registered_client_api_url
 				this.readonly = true
 				showSuccess(t('integration_matrix', 'Matrix OAuth client registered'))
 			}).catch((error) => {

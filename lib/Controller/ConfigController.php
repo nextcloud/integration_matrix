@@ -58,8 +58,9 @@ class ConfigController extends Controller {
 		$token = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'token');
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true) === '1';
-		$registeredClientUrl = $this->appConfig->getAppValueString('registered_client_url', lazy: true);
-		$oauthPossible = $this->isOAuthPossible($adminOauthUrl, $clientId, $registeredClientUrl);
+		$adminOauthApiUrl = $this->appConfig->getAppValueString('oauth_instance_api_url', lazy: true);
+		$registeredClientApiUrl = $this->appConfig->getAppValueString('registered_client_api_url', lazy: true);
+		$oauthPossible = $this->isOAuthPossible($adminOauthApiUrl, $clientId, $registeredClientApiUrl);
 
 		return new DataResponse([
 			'connected' => $matrixUrl !== '' && $token !== '',
@@ -99,15 +100,19 @@ class ConfigController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function startOauth(string $oauthOrigin = 'settings'): DataResponse {
-		$oauthMatrixUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
+		$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
-		$registeredClientUrl = $this->appConfig->getAppValueString('registered_client_url', lazy: true);
+		$adminOauthApiUrl = $this->appConfig->getAppValueString('oauth_instance_api_url', lazy: true);
+		$registeredClientApiUrl = $this->appConfig->getAppValueString('registered_client_api_url', lazy: true);
 
-		if ($oauthMatrixUrl === '' || $clientId === '' || !$this->isAdminOauthClientCompatible($oauthMatrixUrl, $registeredClientUrl)) {
+		if ($adminOauthUrl === ''
+			|| $clientId === ''
+			|| $adminOauthApiUrl === ''
+			|| $registeredClientApiUrl !== $adminOauthApiUrl) {
 			return new DataResponse(['error' => $this->l->t('OAuth is not configured')], Http::STATUS_BAD_REQUEST);
 		}
 
-		$authMetadata = $this->matrixAPIService->getAuthMetadata($oauthMatrixUrl);
+		$authMetadata = $this->matrixAPIService->getAuthMetadata($adminOauthApiUrl);
 		if (isset($authMetadata['error'])) {
 			return new DataResponse($authMetadata, Http::STATUS_BAD_REQUEST);
 		}
@@ -169,7 +174,15 @@ class ConfigController extends Controller {
 				}
 			} else {
 				if ($key === 'url') {
-					$value = $this->matrixAPIService->normalizeMatrixUrl($value);
+					if ($value === '') {
+						$this->userConfig->deleteUserConfig($this->userId, Application::APP_ID, 'url');
+						$this->userConfig->deleteUserConfig($this->userId, Application::APP_ID, 'api_url');
+						continue;
+					} else {
+						$value = $this->matrixAPIService->normalizeMatrixUrl($value);
+						$matrixApiUrl = $this->matrixAPIService->resolveMatrixUrl($value);
+						$this->userConfig->setValueString($this->userId, Application::APP_ID, 'api_url', $matrixApiUrl);
+					}
 				}
 				$this->userConfig->setValueString($this->userId, Application::APP_ID, $key, $value);
 			}
@@ -200,13 +213,23 @@ class ConfigController extends Controller {
 				continue;
 			}
 			if ($key === 'oauth_instance_url') {
-				$value = $this->matrixAPIService->normalizeMatrixUrl($value);
+				if ($value === '') {
+					$this->appConfig->deleteAppValue('oauth_instance_url');
+					$this->appConfig->deleteAppValue('oauth_instance_api_url');
+					continue;
+				} else {
+					$value = $this->matrixAPIService->normalizeMatrixUrl($value);
+					$matrixApiUrl = $this->matrixAPIService->resolveMatrixUrl($value);
+					$this->appConfig->setAppValueString('oauth_instance_api_url', $matrixApiUrl, lazy: true);
+				}
 			}
 			$this->appConfig->setAppValueString($key, $value, lazy: true);
 		}
 
 		if ($clientIdWasUpdated) {
-			$this->appConfig->deleteAppValue('registered_client_url');
+			// when the client ID is changed, we need to update the registered client API URL
+			$adminOauthApiUrl = $this->appConfig->getAppValueString('oauth_instance_api_url', lazy: true);
+			$this->appConfig->setAppValueString('registered_client_api_url', $adminOauthApiUrl, lazy: true);
 		}
 
 		return new DataResponse([]);
@@ -231,7 +254,9 @@ class ConfigController extends Controller {
 		}
 
 		if ($clientSecretWasUpdated) {
-			$this->appConfig->deleteAppValue('registered_client_url');
+			// when the client secret is changed, we need to update the registered client API URL
+			$adminOauthApiUrl = $this->appConfig->getAppValueString('oauth_instance_api_url', lazy: true);
+			$this->appConfig->setAppValueString('registered_client_api_url', $adminOauthApiUrl, lazy: true);
 		}
 
 		return new DataResponse([]);
@@ -242,12 +267,14 @@ class ConfigController extends Controller {
 	 */
 	#[PasswordConfirmationRequired]
 	public function registerAdminOauthClient(string $oauth_instance_url): DataResponse {
-		$matrixUrl = $this->matrixAPIService->normalizeMatrixUrl($oauth_instance_url);
-		if ($matrixUrl === '') {
+		$oauthUrl = $this->matrixAPIService->normalizeMatrixUrl($oauth_instance_url);
+		$storedAdminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
+		$storedAdminOauthApiUrl = $this->appConfig->getAppValueString('oauth_instance_api_url', lazy: true);
+		if ($oauthUrl === '' || $storedAdminOauthUrl !== $oauthUrl) {
 			return new DataResponse(['error' => $this->l->t('Please provide a Matrix OAuth server URL first')], Http::STATUS_BAD_REQUEST);
 		}
 
-		$authMetadata = $this->matrixAPIService->getAuthMetadata($matrixUrl);
+		$authMetadata = $this->matrixAPIService->getAuthMetadata($storedAdminOauthApiUrl);
 		if (isset($authMetadata['error'])) {
 			return new DataResponse($authMetadata, Http::STATUS_BAD_REQUEST);
 		}
@@ -277,23 +304,21 @@ class ConfigController extends Controller {
 			return new DataResponse(['error' => $message], Http::STATUS_BAD_REQUEST);
 		}
 
-		$this->appConfig->setAppValueString('oauth_instance_url', $matrixUrl, lazy: true);
 		$this->appConfig->setAppValueString('client_id', $clientId, lazy: true);
-		$resolvedMatrixUrl = $this->matrixAPIService->resolveMatrixUrl($matrixUrl);
 		$clientSecret = (string)($registrationResponse['client_secret'] ?? '');
 		if ($clientSecret !== '') {
 			$this->appConfig->setAppValueString('client_secret', $clientSecret, lazy: true, sensitive: true);
 		} else {
 			$this->appConfig->deleteAppValue('client_secret');
 		}
-		$this->appConfig->setAppValueString('registered_client_url', $resolvedMatrixUrl, lazy: true);
+		$this->appConfig->setAppValueString('registered_client_api_url', $storedAdminOauthApiUrl, lazy: true);
 
 		return new DataResponse([
 			'client_id' => $clientId,
 			'client_secret' => $clientSecret !== '' ? 'dummySecret' : '',
-			'oauth_instance_url' => $matrixUrl,
-			'oauth_instance_api_url' => $resolvedMatrixUrl,
-			'registered_client_url' => $resolvedMatrixUrl,
+			'oauth_instance_url' => $oauthUrl,
+			'oauth_instance_api_url' => $storedAdminOauthApiUrl,
+			'registered_client_api_url' => $storedAdminOauthApiUrl,
 		]);
 	}
 
@@ -336,6 +361,7 @@ class ConfigController extends Controller {
 		$oauthOrigin = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'oauth_origin');
 		$redirectUri = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'redirect_uri');
 		$matrixUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
+		$adminOauthApiUrl = $this->appConfig->getAppValueString('oauth_instance_api_url', lazy: true);
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$clientSecret = $this->appConfig->getAppValueString('client_secret', lazy: true);
 		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true) === '1';
@@ -353,7 +379,7 @@ class ConfigController extends Controller {
 			return $this->redirectToSettingsError($this->l->t('Error during OAuth exchanges'));
 		}
 
-		$authMetadata = $this->matrixAPIService->getAuthMetadata($matrixUrl);
+		$authMetadata = $this->matrixAPIService->getAuthMetadata($adminOauthApiUrl);
 		if (isset($authMetadata['error'])) {
 			return $this->redirectToSettingsError($authMetadata['error']);
 		}
@@ -454,19 +480,14 @@ class ConfigController extends Controller {
 		);
 	}
 
-	private function isOAuthPossible(string $adminOauthUrl, string $clientId, string $registeredClientUrl): bool {
-		if ($adminOauthUrl === '' || $clientId === '' || !$this->isAdminOauthClientCompatible($adminOauthUrl, $registeredClientUrl)) {
+	private function isOAuthPossible(string $adminOauthApiUrl, string $clientId, string $registeredClientApiUrl): bool {
+		if ($adminOauthApiUrl === ''
+			|| $clientId === ''
+			|| $registeredClientApiUrl === ''
+			|| $registeredClientApiUrl !== $adminOauthApiUrl) {
 			return false;
 		}
 		return true;
-	}
-
-	private function isAdminOauthClientCompatible(string $adminOauthUrl, string $registeredClientUrl): bool {
-		if ($registeredClientUrl === '') {
-			return true;
-		}
-
-		return $this->matrixAPIService->sameMatrixServer($registeredClientUrl, $adminOauthUrl);
 	}
 
 	private function generateOauthDeviceId(): string {

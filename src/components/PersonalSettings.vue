@@ -25,8 +25,8 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 				</NcButton>
 			</div>
 
-			<div v-if="state.oauth_configured" class="auth-block">
-				<NcNoteCard v-if="state.oauth_possible" type="info">
+			<div v-if="state.oauth_possible" class="auth-block">
+				<NcNoteCard type="info">
 					{{ t('integration_matrix', 'Connect to the administrator-provided Matrix server with OAuth.') }}
 				</NcNoteCard>
 				<NcTextField
@@ -38,7 +38,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 					</template>
 				</NcTextField>
 				<NcButton
-					v-if="!connected && state.oauth_possible"
+					v-if="!connected"
 					type="primary"
 					:loading="oauthLoading"
 					@click="connectWithOauth">

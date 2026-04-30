@@ -58,7 +58,7 @@ class MatrixAPIService {
 	 * @param string $userId
 	 * @return string
 	 */
-	public function getConfiguredMatrixUrl(string $userId): string {
+	public function getUserMatrixUrl(string $userId): string {
 		$adminOauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
 		return $this->userConfig->getValueString($userId, Application::APP_ID, 'url', $adminOauthUrl) ?: $adminOauthUrl;
 	}
@@ -67,8 +67,9 @@ class MatrixAPIService {
 	 * @param string $userId
 	 * @return string
 	 */
-	public function getMatrixUrl(string $userId): string {
-		return $this->resolveMatrixUrl($this->getConfiguredMatrixUrl($userId));
+	public function getUserMatrixApiUrl(string $userId): string {
+		$adminOauthApiUrl = $this->appConfig->getAppValueString('oauth_instance_api_url', lazy: true);
+		return $this->userConfig->getValueString($userId, Application::APP_ID, 'api_url', $adminOauthApiUrl) ?: $adminOauthApiUrl;
 	}
 
 	/**
@@ -115,15 +116,6 @@ class MatrixAPIService {
 
 		$this->resolvedMatrixUrlCache[$matrixUrl] = $matrixUrl;
 		return $matrixUrl;
-	}
-
-	/**
-	 * @param string $left
-	 * @param string $right
-	 * @return bool
-	 */
-	public function sameMatrixServer(string $left, string $right): bool {
-		return $this->resolveMatrixUrl($left) === $this->resolveMatrixUrl($right);
 	}
 
 	/**
@@ -278,7 +270,7 @@ class MatrixAPIService {
 		}
 
 		$this->checkTokenExpiration($userId);
-		$matrixUrl = $this->getMatrixUrl($userId);
+		$matrixUrl = $this->getUserMatrixApiUrl($userId);
 		$accessToken = $this->userConfig->getValueString($userId, Application::APP_ID, 'token');
 		if ($matrixUrl === '' || $accessToken === '') {
 			return null;
@@ -458,7 +450,7 @@ class MatrixAPIService {
 	 */
 	private function uploadFile(string $userId, File $file): array {
 		$this->checkTokenExpiration($userId);
-		$matrixUrl = $this->getMatrixUrl($userId);
+		$matrixUrl = $this->getUserMatrixApiUrl($userId);
 		$accessToken = $this->userConfig->getValueString($userId, Application::APP_ID, 'token');
 
 		try {
@@ -502,19 +494,18 @@ class MatrixAPIService {
 		string $method = 'GET',
 		bool $jsonResponse = true,
 	) {
-		$matrixUrl = $this->getMatrixUrl($userId);
+		$matrixUrl = $this->getUserMatrixApiUrl($userId);
 		$this->checkTokenExpiration($userId);
 		return $this->networkService->request($userId, $matrixUrl, $endPoint, $params, $method, $jsonResponse);
 	}
 
 	/**
-	 * @param string $matrixUrl
+	 * @param string $matrixApiUrl
 	 * @return array
 	 */
-	public function getAuthMetadata(string $matrixUrl): array {
-		$matrixUrl = $this->resolveMatrixUrl($matrixUrl);
+	public function getAuthMetadata(string $matrixApiUrl): array {
 		try {
-			$response = $this->client->get($matrixUrl . '/_matrix/client/v1/auth_metadata', [
+			$response = $this->client->get($matrixApiUrl . '/_matrix/client/v1/auth_metadata', [
 				'headers' => [
 					'User-Agent' => Application::INTEGRATION_USER_AGENT,
 				],
@@ -637,7 +628,7 @@ class MatrixAPIService {
 	 * @throws PreConditionNotMetException
 	 */
 	private function refreshToken(string $userId): bool {
-		$matrixUrl = $this->getMatrixUrl($userId);
+		$userMatrixApiUrl = $this->getUserMatrixApiUrl($userId);
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$clientSecret = $this->appConfig->getAppValueString('client_secret', lazy: true);
 		$refreshToken = $this->userConfig->getValueString($userId, Application::APP_ID, 'refresh_token');
@@ -646,7 +637,7 @@ class MatrixAPIService {
 			return false;
 		}
 
-		$authMetadata = $this->getAuthMetadata($matrixUrl);
+		$authMetadata = $this->getAuthMetadata($userMatrixApiUrl);
 		if (isset($authMetadata['error'])) {
 			return false;
 		}

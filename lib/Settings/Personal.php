@@ -40,20 +40,22 @@ class Personal implements ISettings {
 		$matrixUserDisplayName = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'user_displayname');
 		$userAvatarSet = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'user_avatar_url') !== '';
 		$oauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
-		$oauthApiUrl = $oauthUrl !== '' ? $this->matrixAPIService->resolveMatrixUrl($oauthUrl) : '';
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
-		$registeredClientUrl = $this->appConfig->getAppValueString('registered_client_url', lazy: true);
+		$oauthApiUrl = $this->appConfig->getAppValueString('oauth_instance_api_url', lazy: true);
+		$registeredClientApiUrl = $this->appConfig->getAppValueString('registered_client_api_url', lazy: true);
 		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true) === '1';
 		$url = $this->userConfig->getValueString($this->userId, Application::APP_ID, 'url');
-		$oauthConfigured = $oauthUrl !== '' && $clientId !== '' && $this->isAdminOauthClientCompatible($oauthUrl, $registeredClientUrl);
+		$oauthPossible = $oauthUrl !== ''
+			&& $clientId !== ''
+			&& $registeredClientApiUrl !== ''
+			&& $registeredClientApiUrl === $oauthApiUrl;
 
 		$userConfig = [
 			'token' => $token !== '' ? 'dummyTokenContent' : '',
 			'url' => $url,
 			'oauth_instance_url' => $oauthUrl,
 			'oauth_instance_api_url' => $oauthApiUrl,
-			'oauth_configured' => $oauthConfigured,
-			'oauth_possible' => $oauthConfigured,
+			'oauth_possible' => $oauthPossible,
 			'use_popup' => $usePopup,
 			'user_id' => $matrixUserId,
 			'user_name' => $matrixUserName,
@@ -64,14 +66,6 @@ class Personal implements ISettings {
 		];
 		$this->initialStateService->provideInitialState('user-config', $userConfig);
 		return new TemplateResponse(Application::APP_ID, 'personalSettings');
-	}
-
-	private function isAdminOauthClientCompatible(string $adminOauthUrl, string $registeredClientUrl): bool {
-		if ($registeredClientUrl === '') {
-			return true;
-		}
-
-		return $this->matrixAPIService->sameMatrixServer($registeredClientUrl, $adminOauthUrl);
 	}
 
 	public function getSection(): string {

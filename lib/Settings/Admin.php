@@ -31,8 +31,8 @@ class Admin implements ISettings {
 		$clientId = $this->appConfig->getAppValueString('client_id', lazy: true);
 		$clientSecret = $this->appConfig->getAppValueString('client_secret', lazy: true);
 		$oauthUrl = $this->appConfig->getAppValueString('oauth_instance_url', lazy: true);
-		$oauthApiUrl = $oauthUrl !== '' ? $this->matrixAPIService->resolveMatrixUrl($oauthUrl) : '';
-		$registeredClientUrl = $this->appConfig->getAppValueString('registered_client_url', lazy: true);
+		$oauthApiUrl = $this->appConfig->getAppValueString('oauth_instance_api_url', lazy: true);
+		$registeredClientApiUrl = $this->appConfig->getAppValueString('registered_client_api_url', lazy: true);
 		$usePopup = $this->appConfig->getAppValueString('use_popup', '0', lazy: true);
 		$navlinkDefault = $this->appConfig->getAppValueString('navlink_default', '0', lazy: true);
 
@@ -41,7 +41,7 @@ class Admin implements ISettings {
 			'client_secret' => $clientSecret !== '' ? 'dummySecret' : '',
 			'oauth_instance_url' => $oauthUrl,
 			'oauth_instance_api_url' => $oauthApiUrl,
-			'registered_client_url' => $registeredClientUrl,
+			'registered_client_api_url' => $registeredClientApiUrl,
 			'use_popup' => $usePopup === '1',
 			'navlink_default' => ($navlinkDefault === '1'),
 		];
