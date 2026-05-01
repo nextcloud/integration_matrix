@@ -1,5 +1,6 @@
 { "translations": {
+    "Connected accounts" : "Tilkopla kontoar",
     "Room" : "Rom",
-    "Set expiration date" : "Set utløpsdato"
+    "Cancel" : "Cancel"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

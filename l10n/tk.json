@@ -1,7 +1,8 @@
 { "translations": {
+    "Password" : "Açarsöz",
     "Edit" : "Redaktirläň",
-    "Type" : "Görnüşi",
     "Set expiration date" : "Möhlet möhletini belläň",
+    "Cancel" : "Cancel",
     "Upload files" : "Faýllary ýükläň"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

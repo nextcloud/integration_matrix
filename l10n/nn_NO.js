@@ -1,7 +1,8 @@
 OC.L10N.register(
     "integration_matrix",
     {
+    "Connected accounts" : "Tilkopla kontoar",
     "Room" : "Rom",
-    "Set expiration date" : "Set utløpsdato"
+    "Cancel" : "Cancel"
 },
 "nplurals=2; plural=(n != 1);");

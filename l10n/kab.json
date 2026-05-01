@@ -1,4 +1,6 @@
 { "translations": {
-    "Connected as {user}" : "D uqqin am {user}"
+    "Connected as {user}" : "D uqqin am {user}",
+    "Password" : "Awal n uɛeddi",
+    "Upload files" : "Azen ifuyla"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

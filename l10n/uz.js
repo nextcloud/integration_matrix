@@ -3,9 +3,12 @@ OC.L10N.register(
     {
     "Bad credentials" : "Akkaunt ma'lumotlari xato",
     "Bad HTTP method" : "Yomon HTTP usuli",
+    "Connected accounts" : "Ulangan akkauntlar",
+    "Password" : "Parol",
     "Edit" : "Tahrirlash",
     "Files" : "Fayllar",
-    "Type" : "Turi",
-    "Set expiration date" : "Yaroqlilik muddatini belgilang"
+    "Set expiration date" : "Yaroqlilik muddatini belgilang",
+    "Comment" : "Izoh",
+    "Cancel" : "Bekor qilish"
 },
 "nplurals=1; plural=0;");

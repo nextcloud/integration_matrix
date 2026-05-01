@@ -1,16 +1,18 @@
 OC.L10N.register(
     "integration_matrix",
     {
-    "Error during OAuth exchanges" : "Viga OAuthi andmevahetusel",
-    "Bad credentials" : "Vale kasutajanimi, salasõna või tunnusluba",
     "Bad HTTP method" : "Vigane HTTP-meetod",
+    "Connected accounts" : "Ühendatud kasutajakontod",
+    "Invalid access token" : "Vigane tunnusluba ligipääsuks",
     "Connected as {user}" : "Ühendatud kui {user}",
+    "Password" : "Salasõna",
     "Message to send with the files" : "Failidele lisatav sõnum",
     "View only" : "Ainult vaatamiseks",
-    "Files" : "Failid",
-    "Room" : "Ruum",
-    "Directories will be skipped, they can only be sent as links." : "Kaustad jäävad vahele - neid võib saata vaid linkidena.",
+    "Set link password" : "Sisesta lingi salasõna",
+    "_Send file_::_Send files_" : ["Saada fail","Saada failid"],
     "_Send link_::_Send links_" : ["Saada link","Saada lingid"],
-    "Go to settings" : "Ava seadistused"
+    "Nothing" : "Mitte midagi",
+    "Go to settings" : "Ava seadistused",
+    "Public links" : "Avalikud lingid"
 },
 "nplurals=2; plural=(n != 1);");

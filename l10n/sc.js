@@ -1,16 +1,13 @@
 OC.L10N.register(
     "integration_matrix",
     {
-    "Error during OAuth exchanges" : "Errore cuncambiende OAuth",
-    "Error getting OAuth access token." : "Errore recuperende su token de intrada OAuth.",
-    "Bad credentials" : "Credentziales non bàlidas",
-    "OAuth access token refused" : "Token de intrada OAuth refudadu",
     "Bad HTTP method" : "Mètodu HTTP no bàlidu",
+    "Connected accounts" : "Contos connètidos",
     "Connected as {user}" : "Connètidu comente {user}",
-    "Access token" : "Token de atzessu",
+    "Password" : "Crae",
     "View only" : "Isceti in visualizatzione",
-    "Files" : "Archìvios",
     "Set expiration date" : "Cunfigura una data de iscadèntzia",
+    "Cancel" : "Cancel",
     "Upload files" : "Càrriga archìvios",
     "Internal links (Only works for users with access to the files)" : "Ligòngios internos (funtzionat isceti pro utentes cun atzessu a is archìvios)"
 },

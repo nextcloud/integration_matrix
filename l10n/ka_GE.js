@@ -1,6 +1,6 @@
 OC.L10N.register(
     "integration_matrix",
     {
-    "Room" : "ოთახი"
+    "Password" : "პაროლ"
 },
 "nplurals=2; plural=(n!=1);");

@@ -1,13 +1,13 @@
 OC.L10N.register(
     "integration_matrix",
     {
-    "Error during OAuth exchanges" : "Virhe OAuth-tunnistautumisessa",
-    "Bad credentials" : "Virheelliset kirjautumistiedot",
     "Bad HTTP method" : "Virheellinen HTTP-metodi",
+    "Connected accounts" : "Yhdistetyt tilit",
     "Connected as {user}" : "Yhdistetty käyttäjänä {user}",
+    "Password" : "Salasana",
     "View only" : "Vain katselu",
-    "Files" : "Tiedostot",
-    "Room" : "Huone",
-    "Go to settings" : "Mene asetuksiin"
+    "Set link password" : "Aseta linkin salasana",
+    "Go to settings" : "Mene asetuksiin",
+    "Public links" : "Julkiset linkit"
 },
 "nplurals=2; plural=(n != 1);");

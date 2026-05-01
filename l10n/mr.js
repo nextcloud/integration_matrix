@@ -1,6 +1,6 @@
 OC.L10N.register(
     "integration_matrix",
     {
-    "Cancel" : "Cancel"
+    "Cancel" : "रद्द करा"
 },
 "nplurals=2; plural=(n != 1);");

@@ -1,5 +1,6 @@
 { "translations": {
+    "Password" : "கடவுச்சொல்",
     "Edit" : "தொகுக்க",
-    "Type" : "வகை"
+    "Cancel" : "Cancel"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

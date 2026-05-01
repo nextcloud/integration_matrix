@@ -1,14 +1,12 @@
 OC.L10N.register(
     "integration_matrix",
     {
-    "Error during OAuth exchanges" : "Erro durante trocas com o OAuth",
-    "Bad credentials" : "Credenciais inválidas",
     "Bad HTTP method" : "Método HTTP incorreto",
-    "Disconnect" : "Desligado",
+    "Password" : "Password",
     "View only" : "Visualizar apenas",
-    "Files" : "Ficheiros",
     "Room" : "Sala",
     "Set expiration date" : "Definir a data de expiração",
+    "Cancel" : "Cancelar",
     "Upload files" : "Carregar ficheiros",
     "Internal links (Only works for users with access to the files)" : "Links internos (Funcionam apenas para utilizadores com acesso aos ficheiros)"
 },

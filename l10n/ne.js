@@ -1,6 +1,6 @@
 OC.L10N.register(
     "integration_matrix",
     {
-    "Room" : "Sala"
+    "Cancel" : "Cancel"
 },
 "nplurals=2; plural=(n != 1);");
