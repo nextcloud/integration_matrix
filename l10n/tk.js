@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Password" : "Açarsöz",
     "Edit" : "Redaktirläň",
+    "Type" : "Görnüşi",
     "Set expiration date" : "Möhlet möhletini belläň",
     "Cancel" : "Cancel",
     "Upload files" : "Faýllary ýükläň"

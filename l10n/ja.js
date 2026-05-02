@@ -1,11 +1,23 @@
 OC.L10N.register(
     "integration_matrix",
     {
+    "Error during OAuth exchanges" : "OAuth 通信中のエラー",
+    "Bad credentials" : "不正な資格情報",
+    "OAuth access token refused" : "OAuth アクセストークンが拒否されました",
     "Bad HTTP method" : "不正なHTTPメソッド",
     "Connected accounts" : "接続済みアカウント",
     "Connected as {user}" : "{user} に接続済み",
+    "Disconnect" : "切断",
+    "Access token" : "アクセストークン",
     "Password" : "パスワード",
     "View only" : "閲覧のみ",
+    "Edit" : "編集",
+    "Files" : "ファイル",
+    "Room" : "部屋",
+    "Type" : "タイプ",
+    "Set expiration date" : "有効期限を設定",
+    "Comment" : "コメント",
+    "Cancel" : "キャンセル",
     "Upload files" : "アップロードファイル"
 },
 "nplurals=1; plural=0;");

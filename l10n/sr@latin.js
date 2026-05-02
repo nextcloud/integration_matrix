@@ -2,6 +2,8 @@ OC.L10N.register(
     "integration_matrix",
     {
     "Edit" : "Izmeni",
+    "Files" : "Fajlovi",
+    "Type" : "Tip",
     "Set expiration date" : "Postavi datum isteka",
     "Comment" : "Komentar",
     "Cancel" : "Poništi",

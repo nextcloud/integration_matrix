@@ -1,12 +1,32 @@
 OC.L10N.register(
     "integration_matrix",
     {
+    "Error during OAuth exchanges" : "Error durante los intercambios de OAuth",
+    "Error getting OAuth access token." : "Error al obtener el token de acceso de OAuth.",
+    "Bad credentials" : "Credenciales incorrectas",
+    "OAuth access token refused" : "Se rechazó el token de acceso de OAuth",
     "Bad HTTP method" : "Método HTTP incorrecto",
+    "Connected accounts" : "Cuentas conectadas",
     "Invalid access token" : "Token de acceso no válido",
+    "Connected as {user}" : "Conectado como {usuario}",
+    "Disconnect" : "Desconectar",
+    "Access token" : "Token de acceso",
     "Message to send with the files" : "Mensaje para enviar con los archivos",
     "View only" : "Solo vista",
+    "Edit" : "Editar",
+    "Files" : "Archivo",
+    "Room" : "Sala",
+    "Type" : "Tipo",
+    "Set expiration date" : "Establecer fecha de expiración",
+    "Expires on" : "Expira el",
+    "Set link password" : "Establecer contraseña del enlace",
+    "Comment" : "Comentario",
+    "Cancel" : "Cancelar",
     "_Send file_::_Send files_" : ["Enviar archivo","Enviar archivos","Enviar archivos"],
     "_Send link_::_Send links_" : ["Enviar enlace","Enviar enlaces","Enviar enlaces"],
-    "Go to settings" : "Ir a configuración"
+    "Nothing" : "Nada",
+    "Go to settings" : "Ir a configuración",
+    "Public links" : "Enlaces públicos",
+    "Internal links (Only works for users with access to the files)" : "Enlaces internos (solo funciona para usuarios con acceso a los archivos)"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

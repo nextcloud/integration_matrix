@@ -1,0 +1,26 @@
+OC.L10N.register(
+    "integration_matrix",
+    {
+    "Error during OAuth exchanges" : "Fout tijdens OAuth uitwisselingen",
+    "Error getting OAuth access token." : "Fout bij ophalen OAuth access token",
+    "Bad credentials" : "Foute inloggegevens",
+    "OAuth access token refused" : "OAuth toegangstoken geweigerd",
+    "Bad HTTP method" : "Foute HTTP methode",
+    "Connected accounts" : "Verbonden accounts",
+    "Connected as {user}" : "Verbonden als {user}",
+    "Disconnect" : "Verbinding verbreken",
+    "Access token" : "Access token",
+    "Password" : "Wachtwoord",
+    "View only" : "Alleen bekijken",
+    "Edit" : "Bewerken",
+    "Files" : "Bestanden",
+    "Room" : "Ruimte",
+    "Type" : "Type",
+    "Set expiration date" : "Instellen vervaldatum",
+    "Comment" : "Reactie",
+    "Cancel" : "Annuleer",
+    "Go to settings" : "Ga naar instellingen",
+    "Upload files" : "Bestanden uploaden",
+    "Public links" : "Openbare links"
+},
+"nplurals=2; plural=(n != 1);");

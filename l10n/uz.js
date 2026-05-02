@@ -7,6 +7,7 @@ OC.L10N.register(
     "Password" : "Parol",
     "Edit" : "Tahrirlash",
     "Files" : "Fayllar",
+    "Type" : "Turi",
     "Set expiration date" : "Yaroqlilik muddatini belgilang",
     "Comment" : "Izoh",
     "Cancel" : "Bekor qilish"

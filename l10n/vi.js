@@ -12,6 +12,7 @@ OC.L10N.register(
     "Edit" : "Chỉnh sửa",
     "Files" : "Tệp Tin",
     "Room" : "Phòng",
+    "Type" : "Loại",
     "Set expiration date" : "Đặt ngày hết hạn",
     "Comment" : "Bình luận",
     "Cancel" : "Cancel",

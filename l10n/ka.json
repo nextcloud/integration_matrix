@@ -1,0 +1,13 @@
+{ "translations": {
+    "Disconnect" : "Disconnect",
+    "Password" : "Password",
+    "View only" : "View only",
+    "Edit" : "Edit",
+    "Files" : "ფაილები",
+    "Type" : "სახე",
+    "Set expiration date" : "Set expiration date",
+    "Comment" : "კომენტარი",
+    "Cancel" : "გაუქმება",
+    "Upload files" : "Upload files"
+},"pluralForm" :"nplurals=2; plural=(n!=1);"
+}

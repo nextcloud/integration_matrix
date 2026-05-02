@@ -1,0 +1,20 @@
+{ "translations": {
+    "Error during OAuth exchanges" : "Грешка при размена на податоци со OAuth ",
+    "Error getting OAuth access token." : "Грешка при добивање на OAuth пристапен токен",
+    "Bad credentials" : "Неточни акредитиви",
+    "OAuth access token refused" : "Одбиен OAuth пристапен токен ",
+    "Connected accounts" : "Поврзани сметки",
+    "Connected as {user}" : "Поврзан како {user}",
+    "Disconnect" : "Исклучи",
+    "Password" : "Лозинка",
+    "View only" : "Само за гледање",
+    "Edit" : "Уреди",
+    "Files" : "Датотеки",
+    "Room" : "Соба",
+    "Type" : "Вид",
+    "Set expiration date" : "Постави рок на траење",
+    "Comment" : "Коментар",
+    "Cancel" : "Откажи",
+    "Upload files" : "Прикачи датотеки"
+},"pluralForm" :"nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;"
+}

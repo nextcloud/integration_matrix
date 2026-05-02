@@ -1,0 +1,10 @@
+{ "translations": {
+    "Disconnect" : "Malkonekti",
+    "Edit" : "Modifi",
+    "Room" : "Ĉambro",
+    "Type" : "Tipo",
+    "Set expiration date" : "Uzi limdaton",
+    "Comment" : "Komento",
+    "Cancel" : "Cancel"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

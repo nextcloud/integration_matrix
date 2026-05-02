@@ -1,0 +1,24 @@
+OC.L10N.register(
+    "integration_matrix",
+    {
+    "Error during OAuth exchanges" : "S'ha produït un error durant els intercanvis d'OAuth",
+    "Error getting OAuth access token." : "S'ha produït un error en obtenir testimoni d'accés OAuth.",
+    "Bad credentials" : "Credencials dolentes",
+    "OAuth access token refused" : "S'ha rebutjat el testimoni d'accés d'OAuth",
+    "Bad HTTP method" : "Mètode HTTP incorrecte",
+    "Connected accounts" : "Comptes connectats",
+    "Connected as {user}" : "S'ha connectat com a {user}",
+    "Disconnect" : "Desconnecta",
+    "Access token" : "Testimoni d'aplicació",
+    "Password" : "Contrasenya",
+    "View only" : "Només visualitació",
+    "Edit" : "Edició",
+    "Files" : "Fitxers",
+    "Room" : "Sala",
+    "Type" : "Tipus",
+    "Set expiration date" : "Estableix la data de caducitat",
+    "Comment" : "Comentari",
+    "Cancel" : "Cancel",
+    "Upload files" : "Pujada de fitxers"
+},
+"nplurals=2; plural=(n != 1);");

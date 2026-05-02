@@ -1,13 +1,28 @@
 OC.L10N.register(
     "integration_matrix",
     {
+    "Error during OAuth exchanges" : "Virhe OAuth-tunnistautumisessa",
+    "Error getting OAuth access token." : "Virhe haettaessa OAuth-käyttöpolettia.",
+    "Bad credentials" : "Virheelliset kirjautumistiedot",
+    "OAuth access token refused" : "OAuth-valtuutus hylätty",
     "Bad HTTP method" : "Virheellinen HTTP-metodi",
     "Connected accounts" : "Yhdistetyt tilit",
     "Connected as {user}" : "Yhdistetty käyttäjänä {user}",
+    "Disconnect" : "Katkaise yhteys",
+    "Access token" : "Käyttöpoletti",
     "Password" : "Salasana",
     "View only" : "Vain katselu",
+    "Edit" : "Muokkaa",
+    "Files" : "Tiedostot",
+    "Room" : "Huone",
+    "Type" : "Tyyppi",
+    "Set expiration date" : "Aseta vanhenemispäivä",
+    "Expires on" : "Vanhenee",
     "Set link password" : "Aseta linkin salasana",
+    "Comment" : "Kommentti",
+    "Cancel" : "Peruuta",
     "Go to settings" : "Mene asetuksiin",
+    "Upload files" : "Lataa tiedostoja",
     "Public links" : "Julkiset linkit"
 },
 "nplurals=2; plural=(n != 1);");

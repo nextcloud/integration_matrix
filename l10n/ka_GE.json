@@ -1,4 +1,10 @@
 { "translations": {
-    "Password" : "პაროლ"
+    "Disconnect" : "კავშირის გაწყვეტა",
+    "Password" : "პაროლ",
+    "Edit" : "შეცვლა",
+    "Room" : "ოთახი",
+    "Set expiration date" : "მიუთითეთ ვადის გასვლის დრო",
+    "Comment" : "კომენტარი",
+    "Cancel" : "Cancel"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"
 }

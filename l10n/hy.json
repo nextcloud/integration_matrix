@@ -1,0 +1,10 @@
+{ "translations": {
+    "Password" : "գախտնաբառ",
+    "Edit" : "մշակել",
+    "Room" : "Սենյակ",
+    "Type" : "Տիպ",
+    "Set expiration date" : "Սահմանել վավերականության ժամկետ",
+    "Comment" : "Մեկնաբանել",
+    "Cancel" : "Cancel"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

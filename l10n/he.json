@@ -1,0 +1,21 @@
+{ "translations": {
+    "Error during OAuth exchanges" : "שגיאה במהלך החלפות OAuth",
+    "Error getting OAuth access token." : "שגיאה בקבלת אסימון גישה מסוג OAuth.",
+    "Bad credentials" : "פרטי גישה שגויים",
+    "OAuth access token refused" : "אסימון הגישה ב־OAuth סורב",
+    "Bad HTTP method" : "שגיאה במתודת HTTP",
+    "Connected accounts" : "חשבונות מקושרים",
+    "Connected as {user}" : "התחברות בתור {user}",
+    "Disconnect" : "ניתוק",
+    "Password" : "ססמה",
+    "View only" : "לצפיה בלבד",
+    "Edit" : "עריכה",
+    "Files" : "קבצים",
+    "Room" : "חדר",
+    "Type" : "סוג",
+    "Set expiration date" : "הגדרת תאריך תפוגה",
+    "Comment" : "הערה",
+    "Cancel" : "ביטול",
+    "Upload files" : "העלאת קבצים"
+},"pluralForm" :"nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;"
+}

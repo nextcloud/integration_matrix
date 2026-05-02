@@ -5,6 +5,7 @@ OC.L10N.register(
     "View only" : "ดูเท่านั้น",
     "Edit" : "แก้ไข",
     "Room" : "ห้อง",
+    "Type" : "ประเภท",
     "Set expiration date" : "กำหนดวันหมดอายุ",
     "Comment" : "ความคิดเห็น",
     "Cancel" : "Cancel",

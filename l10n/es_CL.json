@@ -1,4 +1,12 @@
 { "translations": {
-    "Password" : "Clave"
+    "Disconnect" : "Desconectar",
+    "Password" : "Clave",
+    "Edit" : "Editar",
+    "Files" : "Archivo",
+    "Room" : "Sala",
+    "Type" : "Tipo",
+    "Set expiration date" : "Establecer fecha de expiración",
+    "Comment" : "Comentario",
+    "Cancel" : "Cancel"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

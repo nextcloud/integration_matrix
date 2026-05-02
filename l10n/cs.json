@@ -1,4 +1,32 @@
 { "translations": {
-    "Message to send with the files" : "Zpráva kterou poslat společně se soubory"
+    "Error during OAuth exchanges" : "Chyba při výměnách informací v rámci OAuth",
+    "Error getting OAuth access token." : "Chyba při získávání OAuth přístupového tokenu.",
+    "Bad credentials" : "Nesprávné přihlašovací údaje",
+    "OAuth access token refused" : "OAuth přístupový token odmítnut",
+    "Bad HTTP method" : "Nesprávná HTTP metoda",
+    "Connected accounts" : "Propojené účty",
+    "Invalid access token" : "Neplatný přístupový token",
+    "Connected as {user}" : "Připojeni jako {user}",
+    "Disconnect" : "Odpojit",
+    "Access token" : "Přístupový token",
+    "Password" : "Heslo",
+    "Message to send with the files" : "Zpráva kterou poslat společně se soubory",
+    "View only" : "Pouze prohlížet",
+    "Edit" : "Upravit",
+    "Files" : "Soubory",
+    "Room" : "Místnost",
+    "Type" : "Typ",
+    "Set expiration date" : "Nastavit datum skončení platnosti",
+    "Expires on" : "Platnost skončí",
+    "Set link password" : "Nastavit heslo pro odkaz",
+    "Comment" : "Komentář",
+    "Cancel" : "Zrušit",
+    "_Send file_::_Send files_" : ["Poslat soubor","Poslat soubory","Poslat soubory","Poslat soubory"],
+    "_Send link_::_Send links_" : ["Poslat odkaz","Poslat odkazy","Poslat odkazy","Poslat odkazy"],
+    "Nothing" : "Nic",
+    "Go to settings" : "Přejít do nastavení",
+    "Upload files" : "Nahrát soubory",
+    "Public links" : "Veřejné odkazy",
+    "Internal links (Only works for users with access to the files)" : "Interním odkazy (funguje pouze pro uživatele, kteří mají k těmto souborům přístup)"
 },"pluralForm" :"nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;"
 }
