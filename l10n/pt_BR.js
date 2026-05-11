@@ -83,7 +83,7 @@ OC.L10N.register(
     "Failed to send files to Matrix" : "Não foi possível enviar os arquivos para o Matrix",
     "Sign in with Matrix" : "Faça login com o Matrix",
     "Failed to start Matrix OAuth flow" : "Falha ao iniciar o fluxo OAuth do Matrix",
-    "Connect to Matrix" : "Conecte-se à Matrix",
+    "Connect to Matrix" : "Conecte-se ao Matrix",
     "You need to connect to a Matrix server before using the Matrix integration." : "Você precisa se conectar a um servidor Matrix antes de usar a integração com o Matrix.",
     "Do you want to connect to {matrixUrl} with OAuth now?" : "Deseja conectar-se ao {matrixUrl} com OAuth agora?",
     "Do you want to go to \"Connected accounts\" in your personal settings?" : "Você quer acessar a seção “Contas conectadas” nas suas configurações pessoais?",
