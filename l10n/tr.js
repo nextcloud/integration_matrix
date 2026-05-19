@@ -26,6 +26,7 @@ OC.L10N.register(
     "_Send file_::_Send files_" : ["Dosya gönder","Dosyaları gönder"],
     "_Send link_::_Send links_" : ["Bağlantı gönder","Bağlantıları gönder"],
     "Nothing" : "Hiçbir şey",
+    "Do you want to go to \"Connected accounts\" in your personal settings?" : "Kişisel ayarlarınızda \"Bağlı hesaplar\" bölümüne gitmek ister misiniz?",
     "Go to settings" : "Ayarlara git",
     "Upload files" : "Dosyaları yükle",
     "Public links" : "Herkese açık bağlantılar",
