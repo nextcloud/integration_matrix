@@ -26,6 +26,7 @@ OC.L10N.register(
     "_Send file_::_Send files_" : ["Send file","Send files"],
     "_Send link_::_Send links_" : ["Send link","Send links"],
     "Nothing" : "Nothing",
+    "_{fileName} was sent to {roomName}_::_{count} files were sent to {roomName}_" : ["{fileName} به {roomName} ارسال شد","{count} فایل به {roomName} ارسال شد"],
     "Go to settings" : "Go to settings",
     "Upload files" : "بارگذاری فایل ها",
     "Public links" : "Public links",
