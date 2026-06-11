@@ -4,7 +4,7 @@ OC.L10N.register(
     "OAuth is not configured" : "Níl OAuth cumraithe",
     "The Matrix server did not provide an OAuth authorization endpoint" : "Níor sholáthair freastalaí an Mhatrix críochphointe údaraithe OAuth",
     "Please provide a Matrix OAuth server URL first" : "Cuir URL freastalaí Matrix OAuth ar fáil ar dtús",
-    "The Matrix server did not provide an OAuth client registration endpoint" : "The Matrix server did not provide an OAuth client registration endpoint",
+    "The Matrix server did not provide an OAuth client registration endpoint" : "Níor sholáthair freastalaí an Mhatrix críochphointe clárúcháin cliant OAuth",
     "Nextcloud Matrix integration" : "Comhtháthú Maitrís Nextcloud",
     "OAuth client registration failed" : "Theip ar chlárú cliant OAuth",
     "Error during OAuth exchanges" : "Earráid le linn malartuithe OAuth",
