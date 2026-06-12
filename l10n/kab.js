@@ -3,7 +3,9 @@ OC.L10N.register(
     {
     "Connected as {user}" : "D uqqin am {user}",
     "Password" : "Awal n uɛeddi",
+    "View only" : "Askan kan",
     "Edit" : "Ẓreg",
+    "Files" : "Ifuyla",
     "Type" : "Anaw",
     "Comment" : "Awennit",
     "Cancel" : "Semmet",
