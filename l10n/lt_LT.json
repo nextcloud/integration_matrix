@@ -18,6 +18,7 @@
     "How to get an access token?" : "Kaip gauti prieigos žymenį?",
     "Log into your Matrix server account and go to Settings > Help & About > Advanced > Access Token, or use the following command in Element Web: /devtools > Authentication > Credentials." : "Prisijunkite prie savo „Matrix“ serverio paskyros ir eikite į „Settings“ > „Help & About“ > „Advanced“ > „Access Token“ arba naudokite šią komandą „Element Web“: /devtools > Authentication > Credentials.",
     "Password" : "Slaptažodis",
+    "Message to send with the files" : "Pranešimas siunčiamas su failais",
     "View only" : "Tik peržiūrėti",
     "Edit" : "Redaguoti",
     "Files" : "Failai",
@@ -25,9 +26,16 @@
     "Type" : "Tipas",
     "Set expiration date" : "Nustatyti galiojimo pabaigos datą",
     "Expires on" : "Baigia galioti",
+    "Set link password" : "Nustatyti nuorodos slaptažodį",
     "Comment" : "Komentaras",
     "Cancel" : "Atsisakyti",
+    "_Send file_::_Send files_" : ["Siųsti failą","Siųsti failus","Siųsti failus","Siųsti failus"],
+    "_Send link_::_Send links_" : ["Siųsti nuorodą","Siųsti nuorodas","Siųsti nuorodas","Siųsti nuorodas"],
+    "Nothing" : "Nieko",
+    "_{fileName} was sent to {roomName}_::_{count} files were sent to {roomName}_" : ["Į {roomName} buvo nusiųstas failas {fileName}","Į {roomName} buvo nusiųsta failų: {count}","Į {count} buvo nusiųsta failų: {roomName}","Į {roomName} buvo nusiųsta failų: {count}"],
+    "Go to settings" : "Eiti į nustatymus",
     "Upload files" : "Įkelti failus",
-    "Public links" : "Viešos nuorodos"
+    "Public links" : "Viešos nuorodos",
+    "Internal links (Only works for users with access to the files)" : "Vidinės nuorodos (veikia tik tiems vartotojams, kurie turi prieigą prie failų)"
 },"pluralForm" :"nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);"
 }
