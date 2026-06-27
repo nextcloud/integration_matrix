@@ -7,6 +7,7 @@ OC.L10N.register(
     "OAuth access token refused" : "OAuth přístupový token odmítnut",
     "Bad HTTP method" : "Nesprávná HTTP metoda",
     "Connected accounts" : "Propojené účty",
+    "https://matrix.example.com" : "https://matrix.example.com",
     "Invalid access token" : "Neplatný přístupový token",
     "Connected as {user}" : "Připojeni jako {user}",
     "Disconnect" : "Odpojit",
