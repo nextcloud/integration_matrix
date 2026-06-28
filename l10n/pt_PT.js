@@ -2,8 +2,11 @@ OC.L10N.register(
     "integration_matrix",
     {
     "Error during OAuth exchanges" : "Erro durante trocas com o OAuth",
+    "Error getting OAuth access token." : "Erro ao obter o token de acesso OAuth.",
     "Bad credentials" : "Credenciais inválidas",
+    "OAuth access token refused" : "Token de acesso OAuth recusado",
     "Bad HTTP method" : "Método HTTP incorreto",
+    "Connected accounts" : "Contas conectadas",
     "Disconnect" : "Desligado",
     "Password" : "Password",
     "View only" : "Visualizar apenas",
@@ -14,6 +17,7 @@ OC.L10N.register(
     "Set expiration date" : "Definir a data de expiração",
     "Comment" : "Comentário",
     "Cancel" : "Cancelar",
+    "Go to settings" : "Vá para as configurações",
     "Upload files" : "Carregar ficheiros",
     "Internal links (Only works for users with access to the files)" : "Links internos (Funcionam apenas para utilizadores com acesso aos ficheiros)"
 },
