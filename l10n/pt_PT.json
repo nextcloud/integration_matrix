@@ -5,6 +5,7 @@
     "OAuth access token refused" : "Token de acesso OAuth recusado",
     "Bad HTTP method" : "Método HTTP incorreto",
     "Connected accounts" : "Contas conectadas",
+    "Invalid access token" : "Token de acesso inválido",
     "Disconnect" : "Desligado",
     "Password" : "Password",
     "View only" : "Visualizar apenas",
@@ -15,6 +16,7 @@
     "Set expiration date" : "Definir a data de expiração",
     "Comment" : "Comentário",
     "Cancel" : "Cancelar",
+    "Nothing" : "Nada",
     "Go to settings" : "Vá para as configurações",
     "Upload files" : "Carregar ficheiros",
     "Internal links (Only works for users with access to the files)" : "Links internos (Funcionam apenas para utilizadores com acesso aos ficheiros)"
