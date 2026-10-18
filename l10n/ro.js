@@ -10,6 +10,7 @@ OC.L10N.register(
     "Password" : "Parolă",
     "View only" : "Numai se vizualizează",
     "Edit" : "Editează",
+    "Files" : "Fișiere",
     "Room" : "Sală",
     "Type" : "Tip",
     "Set expiration date" : "Specifică data expirării",
