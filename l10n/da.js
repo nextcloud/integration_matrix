@@ -88,7 +88,7 @@ OC.L10N.register(
     "Do you want to connect to {matrixUrl} with OAuth now?" : "Vil du forbinde til {matrixUrl} med OAuth nu?",
     "Do you want to go to \"Connected accounts\" in your personal settings?" : "Vil du gå til \"Forbundne konti\" i dine personlige indstillinger?",
     "Go to settings" : "Gå til indstillinger",
-    "Upload files" : "Upload filer",
+    "Upload files" : "Overfør filer",
     "Public links" : "Offentlige links",
     "Internal links (Only works for users with access to the files)" : "Interne links (virker kun for brugere med adgang til filerne)"
 },
